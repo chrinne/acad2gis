@@ -1,28 +1,33 @@
 --- 
 title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
-email: crinne@ufg.uni-kiel.de
 date: "`r format(Sys.time(), '%d. %B %Y')`"
-license: "CC-BY-SA 4.0"
-header-includes: 
-  \renewcommand{\contentsname}{Inhalt} 
-  \renewcommand{\figurename}{Abb.}
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: true
+  pdf_document:
+    fig_caption: true
+    number_sections: true
+    toc: true
+    toc_depth: 2
+    df_print: kable
+license: CC-BY-SA 4.0
+header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
 bibliography: QGIS-cours-references.bib
 csl: journal-of-archaeological-science.csl
 papersize: a4
-output:
-  pdf_document:
-    fig_caption: yes
-    number_sections: yes
-    toc: yes
-    df_print: kable
+email: crinne@ufg.uni-kiel.de
 urlcolor: blue
-link-citations: yes # make citations hyperlinks
+link-citations: yes
 linkcolor: blue
 number_sections: yes
 lang: de-DE
-description: 'Handreichung zur Bereinigung und Migration von CAD-Dokumentation von Ausgrabungen zur SpatiaLite.'
+description: Handreichung zur Bereinigung und Migration von CAD-Dokumentation von
+  Ausgrabungen zur SpatiaLite.
 ---
 
 # Vorwort {-}
@@ -30,7 +35,100 @@ description: 'Handreichung zur Bereinigung und Migration von CAD-Dokumentation v
 
 \newpage
 
+
+```{r R-script-load-library-setup-connection, include=FALSE}
+library(RSQLite)
+t1db<-dbConnect(RSQLite::SQLite(), dbname = ":memory:")
+```
+
+```{sql basic-table-drop, connection=t1db, include=FALSE}
+DROP TABLE IF EXISTS 'hatch_layer_2d';
+DROP TABLE IF EXISTS 'hatch_layer_2D_pattern';
+DROP TABLE IF EXISTS 'line_layer_2d';
+DROP TABLE IF EXISTS 'polyg_layer_2d';
+DROP TABLE IF EXISTS 'text_layer_3d';
+DROP TABLE IF EXISTS 'text_layer_3d_attr';
+```
+
+
 # Einführung
 
 ## GIS
+
+# Protokoll von Schritten
+
+## SpatiaLite GUI
+
+- Import des Gesamtbestandes der Ausgrabung (Wit7 retrodigital) als dxf-Datei (Wit7_8990_alles.dxf)
+- Ergebnis Tabellen: hatch_layer_2d, hatch_layer_2D_pattern, line_layer_2d, polyg_layer_2d, text_layer_3d, text_layer_3d_attr und eine *view* zu den beiden Texttabellen.  
+- Erste Sichtung der linien_layer_2d, darin einige wenige Objekte von Befund-Layern (nicht geschlossene Polygone in CAD, anschließende Befundlinien, Binnenlinien eines Befundes auf falschem Layer). Korrektur im CAD und erneuter Import
+- Pauschale Kombination der Befundpolygone mit den den Befundnummern der Text-Tabelle in eine *view*.
+
+```{sql}
+CREATE VIEW Pl01_BefundeNr as
+select a.layer, a.number, a.info, b.label, a.geometry
+from polyg_layer_2d as a 
+join text_layer_3d as b on st_within(b.geometry, a.geometry)
+where a.layer = 'PL01_Befund'
+  and b.layer = 'PL01_BefundNr'
+```
+
+Grundsätzlich zwei Wege:
+
+1. Die *view* als Vorlage für eine neue Tabelle verwenden und die *geometry* wieder registrieren. Danach mit Handarbeit die Probleme klären.
+
+2. Die Tabelle polyg_layer_2d um sinnvolle Spalten für wichtige Informationen erweitern. Unbedingt die folgenden Updates bei exklusivem Zugriff von SpatiaLite ausführen, sonst erscheinen die Spalten nicht in QGIS. Oder rechtsklick auf die geometry-Spalte und 'Update Layer Statistics'.
+
+```{sql}
+ALTER TABLE "polyg_layer_2d"
+ADD COLUMN number integer
+ADD COLUMN info text;
+
+UPDATE geometry_columns_statistics set last_verified = 0;
+SELECT UpdateLayerStatistics();
+```
+
+Danach in die Spalte number die Befundnummer aus der vorangehenden view eintragen.
+
+```{sql}
+update polyg_layer_2d
+set number = (select label 
+from Pl01_BefundeNr
+where geometry = polyg_layer_2d.geometry)
+where number is null;
+```
+
+Dann wieder Handarbeit für die Problemfälle. Jeweils die fid im Plan abfragen und SQL-Update vornehmen:
+
+```{sql}
+update polyg_layer_2d
+set number = '9013'
+where feature_id = 111
+```
+
+Abschließend die 0-Nummern noch auf NULL setzen.
+
+```{sql}
+update polyg_layer_2d
+set number = NULL
+where number = 0
+```
+
+Befunde mit Schraffur sind Tiergänge?! Dabei sind im vorliegenden Fall einige fehlerhafte Geometrien dabei.
+
+```{sql}
+SELECT *, astext(centroid(geometry))
+FROM "hatch_layer_2d"
+where GeometryType(geometry) not null;
+```
+
+````{sql}
+update polyg_layer_2d
+set info = 'TG'
+where layer like '%_Befund' and 
+feature_id in (select a.feature_id 
+from polyg_layer_2d as a 
+inner join hatch_layer_2d as b on st_within(centroid(b.geometry),a.geometry)
+where GeometryType(b.geometry) not null)
+```
 

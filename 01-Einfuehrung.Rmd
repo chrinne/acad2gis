@@ -32,5 +32,15 @@ description: 'Handreichung zur Bereinigung und Migration von CAD-Dokumentation v
 
 # Einführung
 
+## CAD-Software
+
+1. [AutoCAD](https://www.autodesk.de), [Bildingsbereich](https://www.autodesk.de/education/edu-software/)
+
+2. [BricsCAD](https://www.bricsys.com/de-de/bricscad-pro)
+
+3. [MegaCAD](https://www.megacad.ch/MegaCAD-Versionen/3D.php)
+
+4. [FreeCAD](https://www.freecadweb.org/)
+
 ## GIS
 
