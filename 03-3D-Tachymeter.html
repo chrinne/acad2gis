@@ -1512,7 +1512,7 @@ div.tocify {
 <h1 class="title toc-ignore">CAD-Dokumentation zu GIS mit SpatiaLite
 migrieren</h1>
 <h4 class="author">Christoph Rinne</h4>
-<h4 class="date">13. Juli 2022</h4>
+<h4 class="date">15. Juli 2022</h4>
 
 </div>
 
@@ -1520,6 +1520,12 @@ migrieren</h1>
 <div id="vorwort" class="section level1 unnumbered">
 <h1 class="unnumbered">Vorwort</h1>
 <div style="page-break-after: always;"></div>
+<pre class="sql"><code>DROP TABLE IF EXISTS &#39;hatch_layer_2d&#39;;
+DROP TABLE IF EXISTS &#39;hatch_layer_2D_pattern&#39;;
+DROP TABLE IF EXISTS &#39;line_layer_2d&#39;;
+DROP TABLE IF EXISTS &#39;polyg_layer_2d&#39;;
+DROP TABLE IF EXISTS &#39;text_layer_3d&#39;;
+DROP TABLE IF EXISTS &#39;text_layer_3d_attr&#39;;</code></pre>
 </div>
 <div id="einführung" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Einführung</h1>
@@ -1552,6 +1558,278 @@ from polyg_layer_2d as a
 join text_layer_3d as b on st_within(b.geometry, a.geometry)
 where a.layer = &#39;PL01_Befund&#39;
   and b.layer = &#39;PL01_BefundNr&#39;</code></pre>
+<p>Grundsätzlich zwei Wege:</p>
+<ol style="list-style-type: decimal">
+<li><p>Die <em>view</em> als Vorlage für eine neue Tabelle verwenden und
+die <em>geometry</em> wieder registrieren. Danach mit Handarbeit die
+Probleme klären.</p></li>
+<li><p>Die Tabelle polyg_layer_2d um sinnvolle Spalten für wichtige
+Informationen erweitern. Unbedingt die folgenden Updates bei exklusivem
+Zugriff von SpatiaLite ausführen, sonst erscheinen die Spalten nicht in
+QGIS. Oder rechtsklick auf die geometry-Spalte und ‘Update Layer
+Statistics’.</p></li>
+</ol>
+<div id="weg-2.-zentrale-datenhaltung-in-einer-polygon-tabelle" class="section level3" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> Weg 2. Zentrale
+Datenhaltung in einer Polygon-Tabelle</h3>
+<pre class="sql"><code>ALTER TABLE &quot;polyg_layer_2d&quot;
+ADD COLUMN number integer
+ADD COLUMN info text;
+
+UPDATE geometry_columns_statistics set last_verified = 0;
+SELECT UpdateLayerStatistics();</code></pre>
+<p>Danach in die Spalte number die Befundnummer aus der vorangehenden
+view eintragen.</p>
+<pre class="sql"><code>update polyg_layer_2d
+set number = (select label 
+from Pl01_BefundeNr
+where geometry = polyg_layer_2d.geometry)
+where number is null;</code></pre>
+<p>Dann wieder Handarbeit für die Problemfälle. Jeweils die ‘feature_id’
+im Plan abfragen und SQL-Update vornehmen:</p>
+<pre class="sql"><code>update polyg_layer_2d
+set number = &#39;9013&#39;
+where feature_id = 111</code></pre>
+<p>Abschließend die 0-Nummern noch auf NULL setzen.</p>
+<pre class="sql"><code>update polyg_layer_2d
+set number = NULL
+where number = 0</code></pre>
+<p>Den Vorgang für die weiteren Plana wiederholen.</p>
+<p>Für die Darstellung der Befunde über alle Plana in QGIS kann die
+‘polyg_layer_2d’ der Karte hinzugefügt werden. Objektfilter setzen auf
+<code>&quot;layer&quot; like &#39;PL0%_Befund&#39;</code>, dann bei der Symbologie auf
+‘Abgestuft’ wechseln und als Wert mit <code>substr(&quot;layer&quot;,4,1)</code>
+nur die Planumsnummer aus dem standardisierten Layernamen “Pl01_Befunde”
+holen. Alles klassifizieren und bei Legendenformat: “Planum %%2”
+eintragen.</p>
+<p>Befunde mit Schraffur sind <strong>Tiergänge?!</strong> Dabei sind im
+vorliegenden Fall einige fehlerhafte Geometrien dabei.</p>
+<pre class="sql"><code>SELECT *, astext(centroid(geometry))
+FROM &quot;hatch_layer_2d&quot;
+where GeometryType(geometry) not null;</code></pre>
+<pre class="sql"><code>update polyg_layer_2d
+set info = &#39;TG&#39;
+where layer like &#39;%_Befund&#39; and 
+feature_id in (select a.feature_id 
+from polyg_layer_2d as a 
+inner join hatch_layer_2d as b on st_within(centroid(b.geometry),a.geometry)
+where GeometryType(b.geometry) not null);</code></pre>
+<p>Die Kontrolle auch wegen der falschen Geometrien zeigt eine
+Fehlzuweisung wegen der Lage des Tierganges in einem anderen Befund,
+dazu einige fehlende Zuweisungen. Deshalb die folgende Korrekturen:</p>
+<pre class="sql"><code>update polyg_layer_2d
+set info = NULL
+where feature_id = 69;
+
+update polyg_layer_2d
+set info = &#39;NULL&#39;TG&#39;
+where feature_id in (71, 72, 34, 31, 47, 22, 28);</code></pre>
+<p>Bei den <strong>Profilen</strong> müssen die Linien mit Namen
+versehen werden.</p>
+<ol style="list-style-type: decimal">
+<li>Schritt alle Profillinien bekommen die Nummer des Befundpolygons (=
+zugehörige Befundnummer).</li>
+</ol>
+<pre class="sql"><code>update line_layer_2d
+set number = (select a.number 
+ from polyg_layer_2d as a
+ where intersects(geometry,line_layer_2d.geometry) and
+ layer like &#39;PL%_Befund&#39;)
+where number is null;</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Schritt, die Nagelnamen, z.B. A, B,, werden in die Info-Spalte
+geschrieben.</li>
+</ol>
+<pre class="sql"><code>update line_layer_2d
+set info = (select group_concat(b.label, &#39; - &#39;)  
+ from line_layer_2d as a
+ inner join text_layer_3d as b on intersects(b.geometry,a.geometry)
+ where a.layer=&#39;PL01_Profil&#39; and b.layer=&#39;PL01_ProfilNr&#39; 
+ group by a.feature_id
+ having a.feature_id=line_layer_2d.feature_id)
+where info is null</code></pre>
+<p>Optional für das schnelle Abfragen der Profilinfos in den
+Layereigenschaften folgende “Anzeige” (pop ups, ballon, Sprechblase) bei
+HTML-Kartenhinweise definieren:</p>
+<pre><code>&lt;p&gt;Befund-Nr.: [%&quot;number&quot;%] &lt;br&gt;
+Nägel: [%&quot;info&quot;%]&lt;br&gt;
+Pl.: [%substr(&quot;layer&quot;,4,1)%]&lt;/p&gt;</code></pre>
+<p>Bei den <strong>Schnitten</strong> sind es die Layer mit
+‘Grabungsgrenze’ oder ‘Schnitt’ die bearbeitet werden müssen. Ersteres
+sind z.B. die Dokumentationsgrenzen um die jeweiligen Befunde, zweiters
+sind die “echten” Schnitte z.B. durch den Graben. Beides wird hier
+erstmal zusammengefasst behandelt. Die Update-Anweisung beinhaltet
+mehrfach verschachtelte Unterabfragen.</p>
+<pre class="sql"><code>update polyg_layer_2d as c
+set info = (select b.label 
+from (select * 
+   from polyg_layer_2d
+   where layer like &#39;%Grabungsgrenze%&#39; or layer like &#39;%Schnitt%&#39;) as a
+inner join (select * 
+  from text_layer_3d 
+  where layer like &#39;%SchnittNr&#39;) as b 
+on st_within(b.geometry,a.geometry)
+where c.feature_id = a.feature_id)
+where info is null;</code></pre>
+<p>Zahlreiche <strong>Steine</strong> sind ebenfalls in der Zeichnung
+als Polygone digitalisiert und liegen je Planum auf einem eigenen Layer.
+Damit ist die Aktualisierung der Spalte ‘Info’ sehr einfach.</p>
+<pre class="sql"><code>update polyg_layer_2d
+set info = &#39;Stein&#39;
+where layer like &#39;%Steine&#39; and info is null;</code></pre>
+<p>Dazu soll aber in der Spalte ‘number’ die zugehörige Befundnummer
+ergänzt werden.</p>
+<pre class="sql"><code>update polyg_layer_2d as c
+set number = (select a.number 
+ from (select number, layer, geometry from polyg_layer_2d
+  where layer like &#39;%Befund&#39; and number not null) as a
+ inner join (select feature_id, info, geometry
+   from polyg_layer_2d where info = &#39;Stein&#39;) as b
+ on st_relate(b.geometry, a.geometry)
+ where c.feature_id = b.feature_id)
+where info = &#39;Stein&#39;;</code></pre>
+<p>Einige wenige Steine liegen außerhalb eines Befundes in jeweils einem
+Fall in Planum 2 (Bef. 9011) und 3 (9003). Da es sich beim anstehenden
+Boden um Löss handelt ist die Abgenzung der Befunde offensichtlich
+schwierig gewesen und muss bedingt hinterfragt werden. Im Planum 1
+können an der Grenze noch Steine des Pflughorizontes vorkommen.</p>
+<p><strong>Blöcke mit Attributen in CAD</strong> sind ein wichtiges
+Element in CAD-Zeichnungen mit zahlreichen Optionen und einem enormen
+Mehrwert, z.B. einem einfachen Export in Tabellen mit zahlreichen
+weiteren Informationen. Dies ist die Optimale Möglichkeit diese
+Informationen zu Sichern und Nachzunutzen. Leider sind beim Import der
+DXF-Datei in der SpatiaLite-GUI diese nicht übernommen worden. Es sind
+in diesem Fall Blöcke für die Niv-Werte, die Holzkohle, den Rotlehm und
+die Fundnummern vorhanden.</p>
+<p>Blöcke in AutoCAD können eine unterschiedlichen Grad an Komplexität
+haben, der Import in ein GIS ist deshalb nicht trivial und kann jeweils
+zu unterschiedlichen Ergebnissen führen. Allgemein werden Objekte in
+einer Blockdefinition auf dem Layer ‘0’ angelegt. Beim Einfügen werden
+die Objekte dann dem jeweils aktiven Layer zugewiesen und erhalten auch
+dessen Attribute, z.B. die Farbe. Beim Import werden diese komplexen
+Strukturen unterschiedlich aufgelöst aber immer als Punkt-Objekt des
+Einfügepunktes in AutoCAD behandelt. In QGIS zeigt die Attributtabelle
+zu den importierten Punktobjekten etwa folgendes:</p>
+<table>
+<thead>
+<tr class="header">
+<th>layer</th>
+<th>subclasses</th>
+<th>entityhandle</th>
+<th>text</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PL01_BefundNr</td>
+<td>AcDbEntity:AcDbBlockReference</td>
+<td>77</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>PL01_BefundNr</td>
+<td>AcDbEntity:AcDbText:AcDbText</td>
+<td>1665</td>
+<td>9021</td>
+</tr>
+<tr class="odd">
+<td>0</td>
+<td>AcDbEntity:AcDbText:AcDbAttribute</td>
+<td>461</td>
+<td>9021</td>
+</tr>
+<tr class="even">
+<td>0</td>
+<td>AcDbEntity:AcDbText:AcDbAttribute</td>
+<td>113F</td>
+<td>9005-Keramik</td>
+</tr>
+<tr class="odd">
+<td>0</td>
+<td>AcDbEntity:AcDbText:AcDbAttribute</td>
+<td>6F7</td>
+<td>03/04/2021</td>
+</tr>
+<tr class="even">
+<td>0</td>
+<td>AcDbEntity:AcDbText:AcDbAttribute</td>
+<td>BD4</td>
+<td>207,95</td>
+</tr>
+<tr class="odd">
+<td>PL01_FundNr</td>
+<td>AcDbEntity:AcDbText:AcDbText</td>
+<td>2CF</td>
+<td>BL</td>
+</tr>
+</tbody>
+</table>
+<p>Die ersten drei Zeilen der Tabelle für den Block der Befund-Nr 9021
+nach der Spalte <em>subclasses</em> 1. die eigentliche Blockreferenz, 2.
+den mit dem Block auch eingefügten Text und 3. das Attribut des Blockes.
+Letzteres wird aber aufgelöst auf den ursprünglichen Layer ‘0’ der
+Layerdefinition. Das gleiche passiert auch mit den Attributen der
+Fundnummern, den Datumsangaben der Erfassung und den Niv-Werten. Nur die
+als Text und nicht als Attribut oder grafisches Symbol eingefügten
+Hinweise auf Brandlehm werden auf dem jeweiligen Layer aufgelöst.</p>
+<p>Bis auf die Informationen zur Lage von Brandlehm und Holzkohle sind
+diese Informationen ohne den Bezug zum Planum bzw. dem ursprünglichen
+Layer in CAD unbrauchbar. Die DXF-Import-Erweiterung “<a href="https://gis.makobo.de/en_qgis-dxfimport-dxf2shape">AnotherDXFImporter</a>”
+bietet faszinierende Möglichkeiten, ist bei dieser Aufgabe aber auch
+keine bessere Option.</p>
+<p><strong>Lösungen für das Import-Problem CAD-Blöcke:</strong></p>
+<ol style="list-style-type: decimal">
+<li>Kontrollieren Sie die vorliegende Dokumentation, wer mit Blöcken in
+CAD arbeitet weiß meist was er tut und exportiert diese Daten in
+CSV-Tabellen.</li>
+<li>Nehmen Sie den Export der Blockinformationen aus AutoCAD selber vor,
+ggf. unter Verwendung einer kostengünstigeren Alternative wie BricsCAD.
+AutoCAD gibt es für die Lehre auch 1 Jahr kostenlos und BicsCAD als
+Demo-Version.</li>
+<li>Importieren Sie die originale DWG- oder DXF-Datei in Esri ArcMap,
+dort werden Blöcke mit Attributen korrekt zu Punkten mit entsprechenden
+Attributen aufgelöst.</li>
+</ol>
+<p>Eine in CSV exportierte Blockliste kann so aussehen:</p>
+<table>
+<colgroup>
+<col width="9%" />
+<col width="11%" />
+<col width="14%" />
+<col width="21%" />
+<col width="21%" />
+<col width="21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Layer</th>
+<th>NUMMER</th>
+<th>Position X</th>
+<th>Position Y</th>
+<th>Position Z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Brandlehm</td>
+<td>PL01_FundNr</td>
+<td></td>
+<td>3490060.7999</td>
+<td>5627322.4548</td>
+<td>0.0000</td>
+</tr>
+<tr class="even">
+<td>Fund</td>
+<td>PL01_FundNr</td>
+<td>9005-Keramik</td>
+<td>3490067.9820</td>
+<td>5627321.1025</td>
+<td>0.0000</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 
