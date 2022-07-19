@@ -3,17 +3,17 @@ title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
-  html_document:
-    toc: true
-    toc_depth: 2
-    toc_float: true
-    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
-    toc_depth: 2
+    toc_depth: 4
     df_print: kable
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -142,7 +142,7 @@ Als Ergebnis sind folgende Tabellen überwiegend mit den Spalten feature_id, fil
 
 ### Datenkontrole
 
-An dieser Stelle ein schnelle Kontrolle des Datenbestandes durch eine Tabellierung der Layer in jeder Tabelle
+Prüfen Sie die jeweils resultierende Geometrie, vor allem ob MULTI-Typen vorliegen, z.B. MULTIPOLYGON. Das ist hier nicht der Fall und damit können Teilbefunde nicht zu einem kombinierten Objekt verschmolzen werden. Bei bedarf lautet die Funktion in SpatiaLite: [CastToMulti](http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html#cast). An dieser Stelle ein schnelle Kontrolle des Datenbestandes durch eine Tabellierung der Layer in jeder Tabelle
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 select layer, geometrytype(geometry) as GeoType, count(*) as n 
@@ -158,9 +158,9 @@ from line_layer_2d
 group by 1, 2
 ```
 
-Diese Abfrage liefert im vorliegenden Fall zwei Problemgruppen: Pl01_Steine hat elf und PL02_Befunde hat zwei Linienobjekte. In allen Fällen sollten das Polygone sein. Die Korrektur erfogt am besten in CAD durch, vermutlich durch die Attributsangabe "geschlossen". Die Grabungsgrenzen sind im vorliegenden Fall  aufgrund der Vorgaben heterogen sowohl als Polygon als auch als Linie vorhanden.
+Diese Abfrage liefert im vorliegenden Fall zwei Problemgruppen: Pl01_Steine hat elf und PL02_Befunde hat zwei Linienobjekte. In allen Fällen sollten das Polygone sein. Die Korrektur erfogt am besten in CAD: beim Layer Steine ist es ein Stein der aus zehn einzelnen Linien besteht und beim Layer Befunde sind es zwei nicht geschlossene Befunde. Die Grabungsgrenzen sind im vorliegenden Fall  aufgrund der Vorgaben heterogen sowohl als Polygon als auch als Linie vorhanden. Hier ist die jeweilige Fragestellung relevant: z.B. Fläche bemessen oder 1:1-Abbildung des Papiers.
 
-Die Tabelle text_layer_3d_attr und die Sicht text_layer_3d_attr_view liefern keine erhellenden Informationen und können wie hatch_layer_2d gelöscht werden.
+Die Tabelle text_layer_3d_attr und die Sicht text_layer_3d_attr_view liefern in diesem Fall keine erhellenden Informationen und können wie hatch_layer_2d gelöscht werden.
 
 ### Variante: Viele Tabellen
 
@@ -210,7 +210,7 @@ where a.layer = 'PL01_Befund'
 where c.number is null;
 ```
 
-Wenn der Text neben dem Befund steht ist eine Option zunehmende Puffer um den Punkt des Textes (Befundnummer) zu rechnen und dann st_intersect zu nutzen. Sollte das Feld 'number' noch NULL sein wird es sucsessive gefüllt:
+Diesen Vorgang für alle Plana wiederholen. Wenn der Text neben dem Befund steht ist eine Option zunehmende Puffer um den Punkt des Textes (Befundnummer) zu rechnen und dann st_intersect zu nutzen. Sollte das Feld 'number' noch NULL sein wird es sukzessive gefüllt:
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 update polyg_layer_2d as c
@@ -223,12 +223,23 @@ where a.layer = 'PL01_Befund'
 where c.number is null;
 ```
 
-Nicht alles wird korrekt gelaufen. In QGIS die Beschriftung der Befunde einrichten,  kontrollieren und die Probleme von Hand mit analog der folgenden Anweisung  bereinigen.
+Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten,  kontrollieren und die Probleme von Hand analog der folgenden Anweisung  bereinigen. Die "Massenzuweisung" sind überwiegend die vielen einzelnen Befunde der tiefern Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID's könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Die sind  individuelle und situativ zu treffende Entscheidungen.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+BEGIN TRANSACTION;
 update polyg_layer_2d
 set number = '9013'
-where feature_id = 111
+where feature_id = 111;
+update polyg_layer_2d
+set number = '20B'
+where feature_id = 80;
+update polyg_layer_2d
+set number = '9011'
+where feature_id in (438, 439, 814, 815, 817, 818, 819, 820);
+update polyg_layer_2d
+set number = '9009'
+where feature_id in (102, 444, 445, 446, 812, 813, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019);
+COMMIT
 ```
 
 Abschließend ggf. die 0-Nummern wieder auf NULL setzen.
@@ -238,8 +249,6 @@ update polyg_layer_2d
 set number = NULL
 where number = 0
 ```
-
-Den Vorgang für die weiteren Plana wiederholen.
 
 Für die Darstellung der Befunde über alle Plana in QGIS kann die 'polyg_layer_2d' der Karte hinzugefügt werden. Objektfilter setzen auf ```"layer" like 'PL0%_Befund'```, dann bei der Symbologie auf 'Abgestuft' wechseln und als Wert mit ``` substr("layer",4,1) ``` nur die Planumsnummer aus dem standardisierten Layernamen "Pl01_Befunde" holen. Alles klassifizieren und bei Legendenformat: "Planum %%2" eintragen.
 
@@ -260,13 +269,14 @@ where GeometryType(b.geometry) not null);
 Die Kontrolle wegen der fehlenden Geometrien zeigt eine Fehlzuweisung wegen der Lage des Tierganges in einem anderen Befund. Deshalb die folgende Korrekturen:
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+BEGIN TRANSACTION;
 update polyg_layer_2d
 set info = NULL
 where feature_id = 69;
-
 update polyg_layer_2d
-set info = 'NULL'TG'
+set info = 'TG'
 where feature_id in (71, 72, 34, 31, 47, 22, 28);
+COMMIT
 ```
 
 
@@ -280,12 +290,12 @@ Bei den Profilen müssen die Linien mit Namen versehen werden.
 update line_layer_2d as b
 set number = (select a.number 
  from polyg_layer_2d as a
- where intersects(geometry,line_layer_2d.geometry) and
- layer like 'PL%_Befund')
+ where intersects(a.geometry,b.geometry) and
+ a.layer like 'PL%_Befund')
 where number is null;
 ```
 
-2. Schritt, die Nagelnamen, z.B. A, B,, werden in die Info-Spalte geschrieben.
+2. Schritt, die Nagelnamen, z.B. A, B, werden in die Info-Spalte geschrieben.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 update line_layer_2d
@@ -298,7 +308,7 @@ set info = (select group_concat(b.label, ' - ')
 where info is null
 ```
 
-Optional für das schnelle Abfragen der Profilinfos in den Layereigenschaften folgende "Anzeige" (pop ups, ballon, Sprechblase) bei HTML-Kartenhinweise definieren:
+Optional für das schnelle Abfragen der Profilinfos in den Layereigenschaften von QGIS folgende "Anzeige" (pop ups, ballon, Sprechblase) bei den HTML-Kartenhinweisen definieren:
 
 ```{}
 <p>Befund-Nr.: [%"number"%] <br>
@@ -306,7 +316,9 @@ Nägel: [%"info"%]<br>
 Pl.: [%substr("layer",4,1)%]</p>
 ```
 
-Bei den **Schnitten** sind es die Layer mit 'Grabungsgrenze' oder 'Schnitt' die bearbeitet werden müssen. Ersteres sind z.B. die Dokumentationsgrenzen um die jeweiligen Befunde, zweiters sind die "echten" Schnitte z.B. durch den Graben. Beides wird hier erstmal zusammengefasst behandelt. Die Update-Anweisung beinhaltet mehrfach verschachtelte Unterabfragen.
+#### Schnitte
+
+Bei den Schnitten sind es die Layer mit 'Grabungsgrenze' oder 'Schnitt' die bearbeitet werden müssen. Es sind z.B. die Dokumentationsgrenzen um die jeweiligen Befunde oder auch die "echten" Schnitte, z.B. durch den Graben. Beides wird hier erstmal zusammengefasst behandelt. Die Update-Anweisung beinhaltet mehrfach verschachtelte Unterabfragen.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 update polyg_layer_2d as c
@@ -321,6 +333,55 @@ on st_within(b.geometry,a.geometry)
 where c.feature_id = a.feature_id)
 where info is null;
 ```
+
+Im vorliegenden Fall sind die umfassenden Schnitte der layer 'Grabungsgrenze_extern', '..._intern' oder 'grabungsgrenze' falsch beschriftet. Handarbeit ist hier die schnellere Alternative.
+
+```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+BEGIN TRANSACTION;
+update polyg_layer_2d
+set info = 'Grabungsgrenze 1990 Dia 1451-5'
+where feature_id = 424;
+update polyg_layer_2d
+set info = 'Grabungsgrenze Fiedler 1991'
+where feature_id = 425;
+update polyg_layer_2d
+set info = 'Grabungsgrenze 1988 CAD Plan'
+where feature_id = 147;
+COMMIT
+```
+
+Im vorliegenden Fall ist ein **ärgerlicher Fehler** dabei, die konstruierte externe Grabungsgrenze um die gesamte Fläche von 1989 nach dem CAD-Plan und einem Luftbilddia von 1990 war nicht geschlossen und ist bei den Linien gelandet. Folgende Schritte zur Lösung dieses oder vergleichbarer Fälle:
+
+```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+BEGIN TRANSACTION;
+-- Problem identifizieren:
+select *, st_length(geometry) from line_layer_2d
+where layer like 'Pl01_G%';
+-- Zur Kontrolle, Linie zu Polygon konvertieren:
+-- Hier wird der LINESTRING-WKT zu einem POLYGON-WKT umgeschrieben. 
+select st_geometrytype(geomfromtext('POLYGON (' || 
+ substr(st_astext(geometry),11) ||')')) as geo 
+from line_layer_2d
+where feature_id=148;
+-- Problem lösen durch INSERT-Anweisung:
+-- Die Geometrie wird um die SRID ergänzt, dazu noch die weiteren Felder  
+insert into polyg_layer_2d (filename, layer, geometry) 
+select filename, layer, geomfromtext('POLYGON (' || 
+ substr(st_astext(geometry),11) ||')', 31467) as geo 
+from line_layer_2d
+where feature_id=148;
+-- Kontrolle & Info ergänzen:
+select * from polyg_layer_2d 
+where feature_id = (select max(feature_id)
+ from polyg_layer_2d);
+update polyg_layer_2d 
+set info = 'Grabungsgrenze 1989/90 extern'
+where feature_id = (select max(feature_id)
+ from polyg_layer_2d);
+COMMIT
+```
+
+#### Steine oder andere Objekte
 
 Zahlreiche **Steine** sind ebenfalls in der Zeichnung als Polygone digitalisiert und liegen je Planum auf einem eigenen Layer. Damit ist die Aktualisierung der Spalte 'Info' sehr einfach.
 
@@ -346,7 +407,9 @@ where info = 'Stein';
 
 Einige wenige Steine liegen außerhalb eines Befundes in jeweils einem Fall in Planum 2 (Bef. 9011) und 3 (9003). Da es sich beim anstehenden Boden um Löss handelt ist die Abgenzung der Befunde offensichtlich schwierig gewesen und muss bedingt hinterfragt werden. Im Planum 1 können an der Grenze noch Steine des Pflughorizontes vorkommen. 
 
-**Blöcke mit Attributen in CAD** sind ein wichtiges Element in CAD-Zeichnungen mit zahlreichen Optionen und einem enormen Mehrwert, z.B. einem einfachen Export in Tabellen mit zahlreichen weiteren Informationen. Dies ist die Optimale Möglichkeit diese Informationen zu Sichern und Nachzunutzen. Leider sind beim Import der DXF-Datei in der SpatiaLite-GUI diese nicht übernommen worden. Es sind in diesem Fall Blöcke für die Niv-Werte, die Holzkohle, den Rotlehm und die Fundnummern vorhanden. 
+#### Text und Bockattribute
+
+Blöcke mit Attributen in CAD sind ein wichtiges Element in CAD-Zeichnungen mit zahlreichen Optionen und einem enormen Mehrwert, z.B. einem einfachen Export in Tabellen mit zahlreichen weiteren Informationen. Dies ist die Optimale Möglichkeit diese Informationen zu Sichern und nachnutzbar zu machen. Leider sind beim Import der DXF-Datei in der SpatiaLite-GUI diese nicht übernommen worden. Es sind im vorliegenden Fall Blöcke für die Niv-Werte, die Holzkohle, den Rotlehm und die Fundnummern vorhanden. 
 
 Blöcke in AutoCAD können eine unterschiedlichen Grad an Komplexität haben, der Import in ein GIS ist deshalb nicht trivial und kann jeweils zu unterschiedlichen Ergebnissen führen. Allgemein werden Objekte in einer Blockdefinition auf dem Layer '0' angelegt. Beim Einfügen werden die Objekte dann dem jeweils aktiven Layer zugewiesen und erhalten auch dessen Attribute, z.B. die Farbe. Beim Import werden diese komplexen Strukturen unterschiedlich aufgelöst aber immer als Punkt-Objekt des Einfügepunktes in AutoCAD behandelt. In QGIS zeigt die Attributtabelle zu den importierten Punktobjekten etwa folgendes: 
 
@@ -360,13 +423,13 @@ Blöcke in AutoCAD können eine unterschiedlichen Grad an Komplexität haben, de
 | 0 | AcDbEntity:AcDbText:AcDbAttribute | BD4 | 207,95 |
 | PL01_FundNr | AcDbEntity:AcDbText:AcDbText | 2CF | BL |
 
-Die ersten drei Zeilen der Tabelle für den Block der Befund-Nr 9021 nach der Spalte *subclasses* 1. die eigentliche Blockreferenz, 2. den mit dem Block auch eingefügten Text und 3. das Attribut des Blockes. Letzteres wird aber aufgelöst auf den ursprünglichen Layer '0' der Layerdefinition. Das gleiche passiert auch mit den Attributen der Fundnummern, den Datumsangaben der Erfassung und den Niv-Werten. Nur die als Text und nicht als Attribut oder grafisches Symbol eingefügten Hinweise auf Brandlehm werden auf dem jeweiligen Layer aufgelöst.
+Die ersten drei Zeilen der Tabelle zeigen die daten für den Block der Befund-Nr 9021: 1. die eigentliche Blockreferenz, 2. den mit dem Block auch eingefügten Text und 3. das Attribut des Blockes. Letzteres wird aber aufgelöst auf den ursprünglichen Layer '0' der Layerdefinition. Das gleiche passiert auch mit den Attributen der Fundnummern, den Datumsangaben der Erfassung und den Niv-Werten. Nur die als Text und nicht als Attribut oder grafisches Symbol eingefügten Hinweise auf Brandlehm (BL) werden auf dem jeweiligen Layer aufgelöst.
 
-Bis auf die Informationen zur Lage von Brandlehm und Holzkohle sind diese Informationen ohne den Bezug zum Planum bzw. dem ursprünglichen Layer in CAD unbrauchbar. Die DXF-Import-Erweiterung "[AnotherDXFImporter](https://gis.makobo.de/en_qgis-dxfimport-dxf2shape)" bietet faszinierende Möglichkeiten, ist bei dieser Aufgabe aber auch keine bessere Option.
+Bis auf die Informationen zur Lage von Brandlehm und Holzkohle sind diese Informationen ohne den Bezug zum Planum bzw. dem ursprünglichen Layer in CAD unbrauchbar. Die DXF-Import-Erweiterung "[AnotherDXFImporter](https://gis.makobo.de/en_qgis-dxfimport-dxf2shape)" bietet faszinierende Möglichkeiten, ist bei dieser Aufgabe aber auch keine bessere Option. 
 
-**Lösungen für das Import-Problem CAD-Blöcke:**
+Die Lösungen für das Import-Problem der CAD-Blöcke können sein:
 
- 1. Kontrollieren Sie die vorliegende Dokumentation, wer mit Blöcken in CAD arbeitet weiß meist was er tut und exportiert diese Daten in CSV-Tabellen.
+ 1. Kontrollieren Sie die vorliegende digitale Dokumentation, wer mit Blöcken in CAD arbeitet weiß meist was er tut und exportiert diese Daten in CSV-Tabellen.
  2. Nehmen Sie den Export der Blockinformationen aus AutoCAD selber vor, ggf. unter Verwendung einer kostengünstigeren Alternative wie BricsCAD. AutoCAD gibt es für die Lehre auch 1 Jahr kostenlos und BicsCAD als Demo-Version.
  3. Importieren Sie die originale DWG- oder DXF-Datei in Esri ArcMap, dort werden Blöcke mit Attributen korrekt zu Punkten mit entsprechenden Attributen aufgelöst.
  
@@ -377,19 +440,33 @@ Eine in CSV exportierte Blockliste kann so aussehen:
 | Brandlehm | PL01_FundNr |  | 3490060.7999 | 5627322.4548 | 0.0000 |
 | Fund | PL01_FundNr | 9005-Keramik | 3490067.9820 | 5627321.1025 | 0.0000 |
 
-Für jeden Block wird der Name des Blocks angegeben, der Layer, alle Attribute als getrennte Spalten, z.B. Nummer und die Koordinaten. Der Import mit folgender Kartirung und Auswertung sind damit leicht möglich.
+Für jeden Block wird der Name des Blocks angegeben, der Layer, alle Attribute als getrennte Spalten, z.B. Nummer und die Koordinaten. Der Import mit folgender Kartierung und Auswertung sind damit leicht möglich. 
+
+**Wichtig**: AutoCAD verwendet den "." als Dezimaltrennzeichen, das "," ist der Spaltentrenner. Ein Text mit "," wie z.B. "210,15 m üNN" ohne eine Textauszeichnung ("<text>") führt zu einem Spaltenfehler.
 
 Der **Import der CSV-Tabelle** mit Daten ist über das entsprechende Icon einfach möglich. Beachten Sie im folgenden Fenster 1. den Tabellennamen (z.B. block_attr_3d), 2. [x] First line ..., 3. Column separator (x) Comma, 4. Decimal separator (x) Point, 5. Charset Encoding (vermutl. UTF-8). Nachfolgend wird eine Geometriespalte ergänzt und aus den Daten gefüllt. Bitte beachten: anders als in GIS sind Punkte sind in CAD immer 3D, nur ggf. mit dem Z-Wert 0. 
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+BEGIN TRANSACTION;
+-- Geometriespalte ergänzen
 SELECT AddGeometryColumn('block_attr_3d', 'geometry', 31467, 'POINTZ', 'XYZ');
-
+-- Geometriespalte mit dem WKT aus den Koordinaten füllen.
 update block_attr_3d as a
-set geometry = (select st_geomfromtext(st_astext(st_geomfromtext(
- 'POINTZ(' || "Position_X" || ' ' || "Position_Y" || ' ' || 
-  "Position_Z" || ')')), 31467)
+set geometry = (select st_geomfromtext(('POINTZ(' || "Position_X" || ' ' || 
+"Position_Y" || ' ' || "Position_Z" || ')'), 31467)
  from block_attr_3d
  where a.PK_UID = PK_UID)
 ```
 
-## Kollektivgrab Odagsen I
+![Abb. 2 Das fertige Projekt in QGIS](./img/02_2d_var2_02_qgisprojekt.png)
+
+### Am Ziel
+
+Die QGIS-Datei ist eine gepackte (zip) XML-Datei (*.gpz, *.gps). Grundsätzlich werden in dieser nur die Anweisungen und nicht die Daten hinterlegt. QGIS-Projekte speichern per Definition  als Standard relative Pfadangaben zu den Daten. Die funktioniert bei der SpatiaLite-Datei nicht. Soll dies spontan auch auf anderen Systemen funktionieren, wobei Datenbank und QGIS-Datei in einem Ordner liegen, dann editieren Sie (eine Kopie!) der entpackten Projektdatei und ersetzen Sie die absolute Pfadangabe durch eine relative, z.B.:
+
+"D:/mein/absoluter/Pfad/Wittelsberg7.sqlite" > "./Wittelsberg7.sqlite"
+
+
+# Kollektivgrab Odagsen I
+
+# Literatur
