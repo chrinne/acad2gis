@@ -1,36 +1,81 @@
 --- 
 title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
-email: crinne@ufg.uni-kiel.de
 date: "`r format(Sys.time(), '%d. %B %Y')`"
-license: "CC-BY-SA 4.0"
-header-includes: 
-  \renewcommand{\contentsname}{Inhalt} 
-  \renewcommand{\figurename}{Abb.}
-  \renewcommand{\tablename}{Tab.}
-bibliography: QGIS-cours-references.bib
-csl: journal-of-archaeological-science.csl
-papersize: a4
 output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
   pdf_document:
-    fig_caption: yes
-    number_sections: yes
-    toc: yes
+    fig_caption: true
+    number_sections: true
+    toc: true
+    toc_depth: 4
     df_print: kable
+license: CC-BY-SA 4.0
+header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
+  \renewcommand{\tablename}{Tab.}
+bibliography: ./inst/references.bib
+csl: ./inst/journal-of-archaeological-science.csl
+papersize: a4
+email: crinne@ufg.uni-kiel.de
 urlcolor: blue
-link-citations: yes # make citations hyperlinks
+link-citations: yes
 linkcolor: blue
 number_sections: yes
 lang: de-DE
-description: 'Handreichung zur Bereinigung und Migration von CAD-Dokumentation von Ausgrabungen zur SpatiaLite.'
+description: Handreichung zur Nachnutzung von CAD-Digitalisaten einer auf Papier dokumentierten Ausgrabung.
 ---
-
-# Vorwort {-}
-
 
 \newpage
 
+# Vorwort {-}
+
+```{r R-script-load-library-setup-connection, include=FALSE}
+library(RSQLite)
+wit7db<-dbConnect(RSQLite::SQLite(), dbname = "./data/Wittelsberg7.sqlite")
+```
+
+```{sql basic-table-drop, eval=FALSE, connection=wit7db, include=FALSE}
+DROP TABLE IF EXISTS 'hatch_layer_2d';
+DROP TABLE IF EXISTS 'hatch_layer_2D_pattern';
+DROP TABLE IF EXISTS 'line_layer_2d';
+DROP TABLE IF EXISTS 'polyg_layer_2d';
+DROP TABLE IF EXISTS 'text_layer_3d';
+DROP TABLE IF EXISTS 'text_layer_3d_attr';
+```
+
+
 # Einführung
 
-## GIS
+Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist die  Retrodigitalisierung (2D) einer Papierdokumentation einer über vier Jahre erfolgten Ausgrabung des Kollektivgrabes Odagsen 2, Stadt Einbeck, Ldkr. Northeim. Hierbei geht es weniger um einen schönen, interaktiven Plan in einem GIS am Ende, sondern um die Nachnutzung möglichst vieler Daten für eine räumliche Statistik.
 
+| Anmerkung |
+|----|
+| - Menüpfade oder Abfolgen von Fenstern werden mit schlichten Pfeilen dargestellt: "Datei > Speichern". |
+| - Tastaturkürzel, die ich gerne Nutze, stehen in Spitzklammern je Taste: \<strg> + \<c>. |
+| - Schalter auf Formularen werden in [] gesetzt: [OK] |
+| - Zur Darstellung von Befehlen im Text nutze ich die in Markdown übliche Darstellung von Code oder eben Anweisungen an den Computer: ```anweisung```. |
+| - Der Text enthält viele Links die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck. |
+
+## Verwendete Software & Informationen
+
+ - OS Windows 10
+ - QGIS 3.22.4-Białowieża Quelle: [https://qgis.org]
+ - SpatiaLite SpatiaLite GUI 2.1.0 beta1, SpatiaLite 5.0.0, SQLite 3.33.0, Quelle [http://www.gaia-gis.it]
+ - AutoCAD 2010, Quelle für aktuelle *kostenlose* Schulversionen:  [https://www.autodesk.de/education/edu-software/overview]
+ 
+ - SpatiaLite Cookbook html [http://www.gaia-gis.it/gaia-sins/spatialite-cookbook/index.html]
+- SpatiaLite Funktionen [http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html] 
+
+AutoCAD ist eine sehr komplexe Software und Ausgrabungen können eine komplexe Struktur annehem, die es zu dokumentieren gilt. Erwarten Sie nicht, dass die notwendige Kompetenz beim Erstellen der digitalen Daten stets vorhanden war, auch der Autor (Chr. Rinne) ist hier nur Autodidakt. 
+
+Rechnen Sie mit Fehlern im originalen Datenbestand und einer ggf. nicht optimalen Struktur oder erwarten Sie nicht die von Ihnen bevorzugte Struktur. Korrektur von Fehler und Anpassungen der Struktur erfolgen sicher am besten im originalen Arbeitsumfeld, also CAD.
+
+Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
+
+ - BricsCAD [https://www.bricsys.com]
+ - MegaCAD [https://www.megacad.de/]
+  
