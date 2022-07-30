@@ -3,17 +3,17 @@ title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -60,10 +60,10 @@ Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Au
 | Anmerkung |
 |----|
 | - Menüpfade oder Abfolgen von Fenstern werden mit schlichten Pfeilen dargestellt: "Datei > Speichern". |
-| - Tastaturkürzel, die ich persönlich gerne Nutze, stehen in Spitzklammern je Taste: \<strg> + \<c>. |
+| - Tastaturkürzel, die ich gerne Nutze, stehen in Spitzklammern je Taste: \<strg> + \<c>. |
 | - Schalter auf Formularen werden in [] gesetzt: [OK] |
 | - Zur Darstellung von Befehlen im Text nutze ich die in Markdown übliche Darstellung von Code oder eben Anweisungen an den Computer: ```anweisung```. |
-| - Der Text enthält viele Links, die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck. |
+| - Der Text enthält viele Links die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck. |
 
 ## Verwendete Software & Informationen
 
@@ -77,7 +77,7 @@ Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Au
 
 AutoCAD ist eine sehr komplexe Software und Ausgrabungen können eine komplexe Struktur annehem, die es zu dokumentieren gilt. Erwarten Sie nicht, dass die notwendige Kompetenz beim Erstellen der digitalen Daten stets vorhanden war, auch der Autor (Chr. Rinne) ist hier nur Autodidakt. 
 
-Rechnen Sie mit Fehlern im originalen Datenbestand und einer ggf. nicht optimalen Struktur oder erwarten Sie nicht die von Ihnen bevorzugte Struktur. Korrektur von Fehler und anpassungen der Struktur erfolgen sicher am besten im originalen Arbeitsumfeld, also CAD.
+Rechnen Sie mit Fehlern im originalen Datenbestand und einer ggf. nicht optimalen Struktur oder erwarten Sie nicht die von Ihnen bevorzugte Struktur. Korrektur von Fehler und Anpassungen der Struktur erfolgen sicher am besten im originalen Arbeitsumfeld, also CAD.
 
 Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
@@ -88,9 +88,9 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
 ## AutoCAD Quelldatei (dxf)
 
-Es handelt sich um eine durch ein Grabensystem befestigte spätneolithische Siedlung der Wartberg Gruppe. Nach einigen Prospektionen erfolgte 1988 eine erste Ausgrabung durch das Landesdenkmalamt Hessen, Außenstelle Marburg und 1990 eine zweite Ausgrabung durch die Universität Marburg, Fachbereich Vor- und Frühgeschichte (@fiedlerBefestigteSiedlungJungsteinzeit1991). Beide Grabungen wurden in der seinerzeit üblichen Form mit Theodolit vermessen und auf Papier dokumentiert. Für eine erneute Ausgrabung ab 2021 wurden alle alten Planzeichnungen in einer CAD-Zeichnung fortlaufend digitalisiert. Das alternative Modell, je Zeichenblatt eine Zeichnung und nachfolgende ergänzen zu 4 Gesamtzeichnungen für vier Plana wird am Bsp. Odagsen durchgeführt (s.u.).
+Es handelt sich um eine durch ein Grabensystem befestigte spätneolithische Siedlung der Wartberg Gruppe. Nach einigen Prospektionen erfolgte 1988 eine erste Ausgrabung durch das Landesdenkmalamt Hessen, Außenstelle Marburg und 1990 eine zweite Ausgrabung durch die Universität Marburg, Fachbereich Vor- und Frühgeschichte (@fiedlerBefestigteSiedlungJungsteinzeit1991). Beide Grabungen wurden in der seinerzeit üblichen Form mit Theodolit vermessen und auf Papier dokumentiert. Für eine erneute Ausgrabung ab 2021 wurden alle alten Planzeichnungen in einer CAD-Zeichnung fortlaufend digitalisiert. Das alternative Modell, je Zeichenblatt eine Zeichnung und nachfolgende Zusammenstellung zu 4 Gesamtzeichnungen bzw. für vier Plana wird am Bsp. von Odagsen durchgeführt (s.o.).
 
-Die CAD-Datei wurde in AutoCAD 2020 (Schulversion) und 2010 bearbeitet, sie beinhaltet einen entsprechenden Hinweis. Die Layerbezeichnungen der Zeichnung seit sehr normiert (s. Abb. 1) und es werden zahlreiche Blöcke auch mit Attributen verwendet.
+Die CAD-Datei wurde in AutoCAD 2020 (Schulversion) und 2010 bearbeitet, sie beinhaltet einen entsprechenden Hinweis. Die Layernamen der Zeichnung sind sehr normiert (s. Abb. 1) und es werden zahlreiche Blöcke auch mit Attributen verwendet.
 
 ![Abb. 1 CAD-Datei Wittelsberg 7 in AutoCAD](./img/02_2d_var2_01_cadplan.png)
 
@@ -124,11 +124,11 @@ Die Zeichnung enthält 1230 Polylinien (2d), 72 Linien, 18 Schraffuren, 1945 Blo
 
 Diese eindeutige Nomenklatur ist von großem Vorteil für die nachfolgende Organisation der Daten in einer SpatiaLite Datenbank. Sie erlaubt es mit einer SQL-Anweisung alle Filterbedingungen zu formulieren. Bei einer heterogenen  Nomenklatur müssen ggf. zwei *update*-Anweisungen formuliert oder mit komplexeren  *where*-Anweisungen agiert werden. Für die Visualisierung in QGIS kann auf die Planumsangabe im Layernamen sehr einfach zugegriffen werden. Alternativ muss mit einer ergänzenden Spalte zum Planum operiert werden (s.u.). 
 
-**Wichtig** Innerhalb von Jedem Befund steht als Text und als Block mit Attribut eine Befundnummer, an jeder Profillinie steht steht ein Text mit der Bezeichnung des Profiles oder des jeweiligen Endpunktes. Dies Informationen werden in GIS verbunden.
+**Wichtig** Innerhalb von jedem Befund steht als Text und als Block mit Attribut eine Befundnummer, an jeder Profillinie steht ein Text mit der Bezeichnung des Profiles oder des jeweiligen Endpunktes. Diese Informationen werden in GIS räumlich verbunden.
 
 ## SpatiaLite GUI
 
-Nach dem Start der GUI "Menu > Create a new (empty) SQLite DB". In diese wird die dxf-Datei mit der gesamten Ausgrabung importiert "Menu > Advanced > Import DXF drawings". Im Fenster zum Import folgende Angaben: (x) Import selected DXF drawing file only, SRID: 31467, [v] Append to already existing tables, Dimensions: (x) authomatic 2D/3D, (x) mixed layers, Special Rings handling (x) none. Diese Angaben beziehen sich auf den aktuellen Import und müssen ggf. angepasst werden. Die Option 'mixed layers' trennt nur die Typen (Punkt, Linie Polygon, Text), die Layer werden als Attribut (Spalte) angelegt. Die Alternative trennt erst die Layer und dann nach Typen, erstellt also das x-Fache der vorhandenen CAD-Layer als Tabellen.
+Nach dem Start der GUI bitte"Menu > Create a new (empty) SQLite DB" ausführen. In diese wird die dxf-Datei mit der gesamten Ausgrabung importiert: "Menu > Advanced > Import DXF drawings". Im Fenster zum Import bitte folgende Angaben: (x) Import selected DXF drawing file only, SRID: 31467, [v] Append to already existing tables, Dimensions: (x) authomatic 2D/3D, (x) mixed layers, Special Rings handling (x) none. Diese Angaben beziehen sich auf den aktuellen Import und müssen ggf. angepasst werden. Die Option 'mixed layers' trennt nur die Typen (Punkt, Linie Polygon, Text), die Layer werden als Attribut (Spalte) angelegt. Die Alternative trennt erst die Layer und dann nach Typen, erstellt also das x-Fache der vorhandenen CAD-Layer als Tabellen.
 
 Als Ergebnis sind folgende Tabellen überwiegend mit den Spalten feature_id, filename, layer und geometry als auch und eine *view* (gespeicherte Abfrage) vorhanden:
 
@@ -160,7 +160,7 @@ group by 1, 2
 
 Diese Abfrage liefert im vorliegenden Fall zwei Problemgruppen: Pl01_Steine hat elf und PL02_Befunde hat zwei Linienobjekte. In allen Fällen sollten das Polygone sein. Die Korrektur erfogt am besten in CAD: beim Layer Steine ist es ein Stein der aus zehn einzelnen Linien besteht und beim Layer Befunde sind es zwei nicht geschlossene Befunde. Die Grabungsgrenzen sind im vorliegenden Fall  aufgrund der Vorgaben heterogen sowohl als Polygon als auch als Linie vorhanden. Hier ist die jeweilige Fragestellung relevant: z.B. Fläche bemessen oder 1:1-Abbildung des Papiers.
 
-Die Tabelle text_layer_3d_attr und die Sicht text_layer_3d_attr_view liefern in diesem Fall keine erhellenden Informationen und können wie hatch_layer_2d gelöscht werden.
+Die Tabelle text_layer_3d_attr und die Sicht (*view*) text_layer_3d_attr_view liefern in diesem Fall keine erhellenden Informationen und können wie hatch_layer_2d gelöscht werden.
 
 ### Variante: Viele Tabellen
 
@@ -174,7 +174,7 @@ where a.layer = 'PL01_Befund'
   and b.layer = 'PL01_BefundNr';
 ```
 
-Wird der vorangehenden Abfrage ein ```create table as Pl01_BefundeNr``` vorangestellt wird die entsprechende Tabelle erstellt. Nach einem *refresh* der Datebank ist diese Tabelle sichtbar. Die Angaben zur dort enthaltene Geometrie kann erst mit 'Check geometries' aus dem Kontextmenü überprüft und dann mit 'Recover gemetrie column' wieder hergestellt werden. Vergleichbare Vorgänge für jede Informationseinheit wiederholen.
+Wird der vorangehenden Abfrage ein ```create table as Pl01_BefundeNr``` vorangestellt wird die entsprechende Tabelle erstellt. Nach einem *refresh* der Datenbank ist diese Tabelle sichtbar. Die Angaben zur dort enthaltene Geometrie kann erst mit 'Check geometries' aus dem Kontextmenü überprüft und dann mit 'Recover gemetrie column' wieder hergestellt werden. Vergleichbare Vorgänge für jede Informationseinheit wiederholen.
 
 Das ist die arbeitsreiche und in der Datenhaltung schwierigere Variante wegen der zunehmend vielen Tabellen. Das ist nicht zu empfehlen. Der eigentliche Vorteil: der Lernaufwand liegt nahe NULL.
 
@@ -185,6 +185,7 @@ Bei dieser Variante wird die Tabelle 'polyg_layer_2d' um zwei sinnvolle Spalten 
 Anmerkung: SQLite hat *type affinity*, trivialisierte Info: in einem Feld vom Typ *integer* kann auch '8820A' gespeichert werden.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+-- Mit BEGIN TRANSACTION ... COMMIT werden mehrere Anweisung gebündelt --
 BEGIN TRANSACTION;
 ALTER TABLE "polyg_layer_2d" ADD COLUMN number integer;
 ALTER TABLE "polyg_layer_2d" ADD COLUMN info text;
@@ -223,7 +224,7 @@ where a.layer = 'PL01_Befund'
 where c.number is null;
 ```
 
-Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten,  kontrollieren und die Probleme von Hand analog der folgenden Anweisung  bereinigen. Die "Massenzuweisung" sind überwiegend die vielen einzelnen Befunde der tiefern Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID's könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Die sind  individuelle und situativ zu treffende Entscheidungen.
+Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten,  kontrollieren und die Probleme von Hand analog der folgenden Anweisung  bereinigen. Die "Massenzuweisung" sind überwiegend die vielen einzelnen Befunde der tiefern Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID's könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Dies sind individuelle und situativ zu treffende Entscheidungen.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 BEGIN TRANSACTION;
@@ -278,7 +279,6 @@ set info = 'TG'
 where feature_id in (71, 72, 34, 31, 47, 22, 28);
 COMMIT
 ```
-
 
 #### Profile
 
@@ -409,7 +409,7 @@ Einige wenige Steine liegen außerhalb eines Befundes in jeweils einem Fall in P
 
 #### Text und Bockattribute
 
-Blöcke mit Attributen in CAD sind ein wichtiges Element in CAD-Zeichnungen mit zahlreichen Optionen und einem enormen Mehrwert, z.B. einem einfachen Export in Tabellen mit zahlreichen weiteren Informationen. Dies ist die Optimale Möglichkeit diese Informationen zu Sichern und nachnutzbar zu machen. Leider sind beim Import der DXF-Datei in der SpatiaLite-GUI diese nicht übernommen worden. Es sind im vorliegenden Fall Blöcke für die Niv-Werte, die Holzkohle, den Rotlehm und die Fundnummern vorhanden. 
+Blöcke mit Attributen in CAD sind ein wichtiges Element in CAD-Zeichnungen mit zahlreichen Optionen und einem enormen Mehrwert, z.B. einem einfachen Export in Tabellen mit zahlreichen weiteren Informationen. Dies ist die Optimale Möglichkeit, diese Informationen zu Sichern und nachnutzbar zu machen. Leider sind beim Import der DXF-Datei in der SpatiaLite-GUI diese nicht übernommen worden. Es sind im vorliegenden Fall Blöcke für die Niv-Werte, die Holzkohle, den Rotlehm und die Fundnummern vorhanden. 
 
 Blöcke in AutoCAD können eine unterschiedlichen Grad an Komplexität haben, der Import in ein GIS ist deshalb nicht trivial und kann jeweils zu unterschiedlichen Ergebnissen führen. Allgemein werden Objekte in einer Blockdefinition auf dem Layer '0' angelegt. Beim Einfügen werden die Objekte dann dem jeweils aktiven Layer zugewiesen und erhalten auch dessen Attribute, z.B. die Farbe. Beim Import werden diese komplexen Strukturen unterschiedlich aufgelöst aber immer als Punkt-Objekt des Einfügepunktes in AutoCAD behandelt. In QGIS zeigt die Attributtabelle zu den importierten Punktobjekten etwa folgendes: 
 
@@ -423,7 +423,7 @@ Blöcke in AutoCAD können eine unterschiedlichen Grad an Komplexität haben, de
 | 0 | AcDbEntity:AcDbText:AcDbAttribute | BD4 | 207,95 |
 | PL01_FundNr | AcDbEntity:AcDbText:AcDbText | 2CF | BL |
 
-Die ersten drei Zeilen der Tabelle zeigen die daten für den Block der Befund-Nr 9021: 1. die eigentliche Blockreferenz, 2. den mit dem Block auch eingefügten Text und 3. das Attribut des Blockes. Letzteres wird aber aufgelöst auf den ursprünglichen Layer '0' der Layerdefinition. Das gleiche passiert auch mit den Attributen der Fundnummern, den Datumsangaben der Erfassung und den Niv-Werten. Nur die als Text und nicht als Attribut oder grafisches Symbol eingefügten Hinweise auf Brandlehm (BL) werden auf dem jeweiligen Layer aufgelöst.
+Die ersten drei Zeilen der Tabelle zeigen die Daten für den Block der Befund-Nr 9021: 1. die eigentliche Blockreferenz, 2. den mit dem Block auch eingefügten Text und 3. das Attribut des Blockes. Letzteres wird aber aufgelöst auf den ursprünglichen Layer '0' der Layerdefinition abgelegt. Das gleiche passiert auch mit den Attributen der Fundnummern, den Datumsangaben der Erfassung und den Niv-Werten. Nur die als Text und nicht als Attribut oder grafisches Symbol eingefügten Hinweise auf Brandlehm (BL) werden auf dem jeweiligen Layer aufgelöst.
 
 Bis auf die Informationen zur Lage von Brandlehm und Holzkohle sind diese Informationen ohne den Bezug zum Planum bzw. dem ursprünglichen Layer in CAD unbrauchbar. Die DXF-Import-Erweiterung "[AnotherDXFImporter](https://gis.makobo.de/en_qgis-dxfimport-dxf2shape)" bietet faszinierende Möglichkeiten, ist bei dieser Aufgabe aber auch keine bessere Option. 
 
@@ -442,9 +442,9 @@ Eine in CSV exportierte Blockliste kann so aussehen:
 
 Für jeden Block wird der Name des Blocks angegeben, der Layer, alle Attribute als getrennte Spalten, z.B. Nummer und die Koordinaten. Der Import mit folgender Kartierung und Auswertung sind damit leicht möglich. 
 
-**Wichtig**: AutoCAD verwendet den "." als Dezimaltrennzeichen, das "," ist der Spaltentrenner. Ein Text mit "," wie z.B. "210,15 m üNN" ohne eine Textauszeichnung ("<text>") führt zu einem Spaltenfehler.
+**Wichtig**: AutoCAD verwendet den "." als Dezimaltrennzeichen, das "," ist der Spaltentrenner. Ein Text mit "," wie z.B. "210,15 m üNN" ohne eine Textauszeichnung ("<text>") führt dies zu einem Spaltenfehler. Verwenden Sie z.B. [RegExp](https://regextutorial.org/regex-for-numbers-and-ranges.php) in [Notepad ++](https://notepad-plus-plus.org), um dieses Problem effizient zu lösen.
 
-Der **Import der CSV-Tabelle** mit Daten ist über das entsprechende Icon einfach möglich. Beachten Sie im folgenden Fenster 1. den Tabellennamen (z.B. block_attr_3d), 2. [x] First line ..., 3. Column separator (x) Comma, 4. Decimal separator (x) Point, 5. Charset Encoding (vermutl. UTF-8). Nachfolgend wird eine Geometriespalte ergänzt und aus den Daten gefüllt. Bitte beachten: anders als in GIS sind Punkte sind in CAD immer 3D, nur ggf. mit dem Z-Wert 0. 
+Der **Import der CSV-Tabelle** mit Daten ist über das entsprechende Icon einfach möglich. Beachten Sie im folgenden Fenster 1. den Tabellennamen (z.B. block_attr_3d), 2. [x] First line ..., 3. Column separator (x) Comma, 4. Decimal separator (x) Point, 5. Charset Encoding (vermutl. UTF-8). Nachfolgend wird eine Geometriespalte ergänzt und aus den Daten gefüllt. Bitte beachten: anders als in GIS sind Punkte in CAD immer 3D, nur ggf. mit dem Z-Wert 0. 
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 BEGIN TRANSACTION;
@@ -462,11 +462,8 @@ set geometry = (select st_geomfromtext(('POINTZ(' || "Position_X" || ' ' ||
 
 ### Am Ziel
 
-Die QGIS-Datei ist eine gepackte (zip) XML-Datei (*.gpz, *.gps). Grundsätzlich werden in dieser nur die Anweisungen und nicht die Daten hinterlegt. QGIS-Projekte speichern per Definition  als Standard relative Pfadangaben zu den Daten. Die funktioniert bei der SpatiaLite-Datei nicht. Soll dies spontan auch auf anderen Systemen funktionieren, wobei Datenbank und QGIS-Datei in einem Ordner liegen, dann editieren Sie (eine Kopie!) der entpackten Projektdatei und ersetzen Sie die absolute Pfadangabe durch eine relative, z.B.:
+Die QGIS-Datei ist eine gepackte (zip) XML-Datei (*.gpz, *.gps). Grundsätzlich werden in dieser nur die Anweisungen und nicht die Daten hinterlegt. QGIS-Projekte speichern per Definition  als Standard relative Pfadangaben zu den Daten. Dies funktioniert bei der SpatiaLite-Datei nicht. Soll dies spontan auch auf anderen Systemen funktionieren, wobei Datenbank und QGIS-Datei in einem Ordner liegen, dann editieren Sie (eine Kopie!) der entpackten Projektdatei und ersetzen Sie die absolute Pfadangabe durch eine relative, z.B.:
 
 "D:/mein/absoluter/Pfad/Wittelsberg7.sqlite" > "./Wittelsberg7.sqlite"
-
-
-# Kollektivgrab Odagsen I
 
 # Literatur
