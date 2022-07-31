@@ -2,6 +2,7 @@
 title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
+always_allow_html: true
 output:
   html_document:
     toc: true
@@ -78,4 +79,14 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
  - BricsCAD [https://www.bricsys.com]
  - MegaCAD [https://www.megacad.de/]
-  
+
+## Originaldaten
+
+Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kollektivgrabes Ogasen I, Stadt Einbeck, Ldkr. Northeim in Niedersachsen. Die Ausgrabung erfolgte in vier Kampagnen von 1981 bis 1984 als Forschungs- und Lehrgrabung des Institutes für Ur- und Frühgeschichte der Georg-August-Universität in Niedersachsen (@rinneOdagsenUndGrossenrode2003a). In diesen Kampagnen  wurden zahlreiche Schnitte und eine wechselnde Anzahl von Plana angelegt als auch die dazwischen ursprünglich belassenen Profilstege sukzsessive abgebaut und auf insgesamt 154, meist einzelnen und neu gerichteten Din A3-Blättern im M 1:20 dokumentiert. 
+Die die Digitalisierung der Planzeichnungen erfolgte im Mai und Juni 1997 in AutoCAD Ver. 12 (DOS) und Ver. 13 (Windows 3.1) auf einem Din-A3-Grafiktablett und mit Referenzierung anhand der Koordinatenangaben auf den Blättern. Jede Datei erhielt eine stringent vergeben Namen ODS(chnitt)<SchnittNr> P(lanum)<Planumnummer des Blattes> <fortlaufender Zähler>, z.B. ODS1P102. Für jedes Blatt wurde die Planumsangabe der Zeichnung,  die Planumsangabe mit Bezug auf die Angabe der Ausgräberin, die Bearbeitungszeit, die mittlere Angabe der Nivellierwerte  zum Fixpunkt der Oberfläche erfasst. Ergänzt wurden nachträglich die gängigen Metadaten der resultierenden Dateien.
+
+```{r Table 1 List of drawings and DWG files., echo=FALSE}
+tab01<-read.table("./data-raw/od_files.txt", header = TRUE, sep = "\t", dec = ",")
+DT::datatable(tab01, options=list(pagelength=10), caption="Liste der Planzeichnungen und erstellten DWG-Dateien.")
+knitr::kable(tab01[1:9,])
+```
