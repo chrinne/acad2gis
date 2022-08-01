@@ -4,17 +4,17 @@ author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 always_allow_html: true
 output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -119,6 +119,8 @@ Symbole für Holzkohle, Rotlehm und verbrannte Knochen wurden grafische Blöcke 
 
 ## Vorbereitung in AutoCAD
 
+### Export in DXF
+
 Für den Export aller DWG-Datei in DXF eine Script geschrieben und als Startoption an autocad AutoCAD innerhalb eines Batch-Scriptes übergeben. Die Batch-Datei zum Starten von AutoCAD wird im Ordner der DWG-Dateien aufgerufen, wodurch das Arbeitsvezeichnis hier liegt und die Pfadangaben im Skript entfallen können.
 
 ```{}
@@ -126,7 +128,7 @@ REM Command to start ACAD with the script to convert all DWG files to DXF
 "c:\Program Files\Autodesk\AutoCAD 2014\acad.exe" /b od_convert_dwg2dxf.scr
 ```
 
-Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer Leerzeile enden.
+Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer **Leerzeile enden**. Sollten Sie in der DWG Änderungen vornehmen (s.u.) und wollen diese auch speichern ergänzen Sie die den Befehl "*_qsave*". 
 
 ```{}
 ;; Script file for AutoCAD
@@ -141,8 +143,40 @@ _close
 _open
 ODS1P102.DWG
 ...
+<blank line>
 ```
 
-Die Umsetzung einem Batch-Script mit einer for-Schleife für alle DWG-Dateien im Ordner ist möglich, würde aber für jede Datei AutoCAD erneut starten.  
+### Einheiten
+
+AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar mit Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht. Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Dazu im vorangehenden Code nach dem Öffnen der DWG-Datei und vor dem Speichern (*_saveas*) folgenden Code einfügen. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
+
+```{}
+INSUNITS
+6
+```
+
+### Schraffuren zerlegen
+
+Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überführen. Werden Schraffuren in ihre Elemente, z.B. einzelne Linien zerlegt, handelt es sich um den Import einer schlichten Geometrie. In einem GIS kann dann mit eine räumliche Verbindung (*spatial join*) zwischen den unterschiedlichen Objekten hergestellt werden. Im vorliegenden Fall könnten dann alle Steine mit mindestens einem Linienmittelpunkt vom Layer "FEUER"  als gebrannt markiert werden. Dazu muss vor der dem Speichern (*_saveas*) folgender Code eingefügt werden. 
+
+```{}
+(setq SS (ssget "x" '((0 . "hatch") (8 . "FEUER"))))
+(if SS
+ (progn
+  (setq CNT 0)
+  (repeat (sslength SS)
+   (vl-cmdf "._explode" (ssname SS CNT))
+   (setq CNT (1+ CNT))
+  )
+ )
+)
+<blank line>
+```
+
+Da dies nicht ganz selbsterklärend ist eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei "x" die Objekte zu, die folgenden Liste an Parametern (*dotted pairs*) erfüllen. Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt. 
+
+### Datenextraktion
+
+In AutoCAD können aus einzelnen oder auch vielen Zeichnungen eines Ordners diverse Elemente mit deren Attributen als Liste exportiert werden (*_dataextraction*). Die Befehlsführung ist weitgehend intuitiv. In den einzelnen Fenstern kann die Auswahl an Elemente und Attribute durch entsprechende Anzeigeoptionen bzw. Filter gesteuert werden. Im Beispiel Odagsen "Nur Blöcke Anzeigen" für die Auswahl von "HK", "LB" und "RL". Dann den Kategorienfilter auf "Allgemein", "Geometrie" und "Zeicnung" für die Auswahl der Attribute "Dateiname", "Layer", "Position x","Position Y" und "Position Z". **Wichtig**: der Export muss wegen der Punkt-Komma-Problematik als CSV-Date gespeichert werden.
 
 # Literatur
