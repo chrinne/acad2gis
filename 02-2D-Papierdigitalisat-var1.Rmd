@@ -34,6 +34,16 @@ description: Handreichung zur Nachnutzung von CAD-Digitalisaten einer auf Papier
 
 # Vorwort {-}
 
+Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist die  Retrodigitalisierung (2D) einer Papierdokumentation einer über vier Jahre erfolgten Ausgrabung des Kollektivgrabes Odagsen 1, Stadt Einbeck, Ldkr. Northeim. Hierbei geht es nicht um einen schönen, interaktiven Plan in einem GIS am Ende, sondern um die Nachnutzung möglichst vieler Daten für eine räumliche Statistik.
+
+| Anmerkung |
+|----|
+| - Menüpfade oder Abfolgen von Fenstern werden mit schlichten Pfeilen dargestellt: "Datei > Speichern". |
+| - Tastaturkürzel, die ich gerne Nutze, stehen in Spitzklammern je Taste: \<strg> + \<c>. |
+| - Schalter auf Formularen werden in [] gesetzt: [OK] |
+| - Zur Darstellung von Befehlen im Text nutze ich die in Markdown übliche Darstellung von Code oder eben Anweisungen an den Computer: ```anweisung```. |
+| - Der Text enthält viele Links die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck. |
+
 ```{r knitr global options, include=FALSE}
 # Global options for knitr
 knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
@@ -61,16 +71,6 @@ DROP TABLE IF EXISTS 'text_layer_3d_attr';
 
 # Einführung
 
-Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist die  Retrodigitalisierung (2D) einer Papierdokumentation einer über vier Jahre erfolgten Ausgrabung des Kollektivgrabes Odagsen 1, Stadt Einbeck, Ldkr. Northeim. Hierbei geht es nicht um einen schönen, interaktiven Plan in einem GIS am Ende, sondern um die Nachnutzung möglichst vieler Daten für eine räumliche Statistik.
-
-| Anmerkung |
-|----|
-| - Menüpfade oder Abfolgen von Fenstern werden mit schlichten Pfeilen dargestellt: "Datei > Speichern". |
-| - Tastaturkürzel, die ich gerne Nutze, stehen in Spitzklammern je Taste: \<strg> + \<c>. |
-| - Schalter auf Formularen werden in [] gesetzt: [OK] |
-| - Zur Darstellung von Befehlen im Text nutze ich die in Markdown übliche Darstellung von Code oder eben Anweisungen an den Computer: ```anweisung```. |
-| - Der Text enthält viele Links die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck. |
-
 ## Verwendete Software & Informationen
 
  - OS Windows 10
@@ -92,11 +92,11 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
 ## Originaldaten
 
-## Ausgrabung
+### Ausgrabung
 
 Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kollektivgrabes [Ogasen I](https://www.jna.uni-kiel.de/index.php/jna/issue/view/23), Stadt Einbeck, Ldkr. Northeim in Niedersachsen. Die Ausgrabung erfolgte in vier Kampagnen von 1981 bis 1984 als Forschungs- und Lehrgrabung des Institutes für Ur- und Frühgeschichte der Georg-August-Universität in Niedersachsen (@rinneOdagsenUndGrossenrode2003a). In diesen Kampagnen  wurden zahlreiche Schnitte und eine wechselnde Anzahl von Plana angelegt als auch die dazwischen ursprünglich belassenen Profilstege sukzsessive abgebaut und auf insgesamt 154, meist einzelnen und neu gerichteten Din A3-Blättern im M 1:20 dokumentiert. Zu den jeweiligen Planblättern wurden Überlieger auf Transparentpapier mit Nivellierwerte und weiteren Angaben angefertigt. Die Einmessung erfolgte mit Theodolit, Nivelliergerät und Maßband.
 
-## Digitalisierung in AutoCAD
+### Digitalisierung in AutoCAD
 
 Die die Digitalisierung der Planzeichnungen erfolgte im Mai und Juni 1997 in AutoCAD Ver. 12 (DOS) und Ver. 13 (Windows 3.1) auf einem Din-A3-Grafiktablett und mit Referenzierung anhand der Koordinatenangaben auf den Blättern. Jede Datei erhielt eine stringent vergeben Namen ODS(chnitt)<SchnittNr> P(lanum)<Planumnummer des Blattes> <fortlaufender Zähler>, z.B. ODS1P102. Für jedes Blatt wurde die Planumsangabe der Zeichnung,  die Planumsangabe mit Bezug auf die Angabe der Ausgräberin, die Bearbeitungszeit, die mittlere Angabe der Nivellierwerte  zum Fixpunkt der Oberfläche erfasst. Ergänzt wurden nachträglich die gängigen Metadaten der resultierenden Dateien.
 
@@ -157,7 +157,7 @@ INSUNITS
 
 ### Schraffuren zerlegen
 
-Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überführen. Werden Schraffuren in ihre Elemente, z.B. einzelne Linien zerlegt, handelt es sich um den Import einer schlichten Geometrie. In einem GIS kann dann mit eine räumliche Verbindung (*spatial join*) zwischen den unterschiedlichen Objekten hergestellt werden. Im vorliegenden Fall könnten dann alle Steine mit mindestens einem Linienmittelpunkt vom Layer "FEUER"  als gebrannt markiert werden. Dazu muss vor der dem Speichern (*_saveas*) folgender Code eingefügt werden. 
+Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überführen. Werden Schraffuren in die zugehörigen Elemente, z.B. einzelne Linien zerlegt, handelt es sich um den Import einer schlichten Geometrie. In einem GIS kann dann mit eine räumliche Verbindung (*spatial join*) zwischen den unterschiedlichen Objekten hergestellt werden. Im vorliegenden Fall könnten dann alle Steine mit mindestens einem Linienmittelpunkt vom Layer "FEUER"  als gebrannt markiert werden. Dazu muss vor der dem Speichern (*_saveas*) folgender Code eingefügt werden. 
 
 ```{}
 (setq SS (ssget "x" '((0 . "hatch") (8 . "FEUER"))))
@@ -173,10 +173,16 @@ Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überf�
 <blank line>
 ```
 
-Da dies nicht ganz selbsterklärend ist eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei "x" die Objekte zu, die folgenden Liste an Parametern (*dotted pairs*) erfüllen. Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt. 
+Da dies nicht ganz selbsterklärend deshalb eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei "x" die Objekte zu, die folgenden Liste an Parametern (*dotted pairs*) erfüllen. Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt. 
 
 ### Datenextraktion
 
 In AutoCAD können aus einzelnen oder auch vielen Zeichnungen eines Ordners diverse Elemente mit deren Attributen als Liste exportiert werden (*_dataextraction*). Die Befehlsführung ist weitgehend intuitiv. In den einzelnen Fenstern kann die Auswahl an Elemente und Attribute durch entsprechende Anzeigeoptionen bzw. Filter gesteuert werden. Im Beispiel Odagsen "Nur Blöcke Anzeigen" für die Auswahl von "HK", "LB" und "RL". Dann den Kategorienfilter auf "Allgemein", "Geometrie" und "Zeicnung" für die Auswahl der Attribute "Dateiname", "Layer", "Position x","Position Y" und "Position Z". **Wichtig**: der Export muss wegen der Punkt-Komma-Problematik als CSV-Date gespeichert werden.
+
+# SpatiaLite GUI
+I diesem Fall nicht die GUI, da nicht alle dxf-dataein importiert werden sollen
+spatialite.exe d:\.....\Odagsen1.sqlite
+.databases
+
 
 # Literatur
