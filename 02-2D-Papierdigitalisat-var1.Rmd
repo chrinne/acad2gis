@@ -4,17 +4,17 @@ author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 always_allow_html: true
 output:
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -34,12 +34,23 @@ description: Handreichung zur Nachnutzung von CAD-Digitalisaten einer auf Papier
 
 # Vorwort {-}
 
-```{r R-script-load-library-setup-connection, include=FALSE}
-library(RSQLite)
-wit7db<-dbConnect(RSQLite::SQLite(), dbname = "./data/Wittelsberg7.sqlite")
+```{r knitr global options, include=FALSE}
+# Global options for knitr
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 ```
 
-```{sql basic-table-drop, eval=FALSE, connection=wit7db, include=FALSE}
+```{r Install required packages and load, include=FALSE}
+# Install required packages
+require(pacman) || install.packages("pacman")
+pacman::p_load(DT, knitr)
+```
+
+```{r R-script-load-library-setup-connection, include=FALSE}
+library(RSQLite)
+od1db<-dbConnect(RSQLite::SQLite(), dbname = "./data/Odagsen1.sqlite")
+```
+
+```{sql basic-table-drop, eval=FALSE, connection=od1db, include=FALSE}
 DROP TABLE IF EXISTS 'hatch_layer_2d';
 DROP TABLE IF EXISTS 'hatch_layer_2D_pattern';
 DROP TABLE IF EXISTS 'line_layer_2d';
@@ -48,10 +59,9 @@ DROP TABLE IF EXISTS 'text_layer_3d';
 DROP TABLE IF EXISTS 'text_layer_3d_attr';
 ```
 
-
 # Einführung
 
-Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist die  Retrodigitalisierung (2D) einer Papierdokumentation einer über vier Jahre erfolgten Ausgrabung des Kollektivgrabes Odagsen 2, Stadt Einbeck, Ldkr. Northeim. Hierbei geht es weniger um einen schönen, interaktiven Plan in einem GIS am Ende, sondern um die Nachnutzung möglichst vieler Daten für eine räumliche Statistik.
+Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist die  Retrodigitalisierung (2D) einer Papierdokumentation einer über vier Jahre erfolgten Ausgrabung des Kollektivgrabes Odagsen 1, Stadt Einbeck, Ldkr. Northeim. Hierbei geht es nicht um einen schönen, interaktiven Plan in einem GIS am Ende, sondern um die Nachnutzung möglichst vieler Daten für eine räumliche Statistik.
 
 | Anmerkung |
 |----|
@@ -82,11 +92,57 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
 ## Originaldaten
 
-Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kollektivgrabes Ogasen I, Stadt Einbeck, Ldkr. Northeim in Niedersachsen. Die Ausgrabung erfolgte in vier Kampagnen von 1981 bis 1984 als Forschungs- und Lehrgrabung des Institutes für Ur- und Frühgeschichte der Georg-August-Universität in Niedersachsen (@rinneOdagsenUndGrossenrode2003a). In diesen Kampagnen  wurden zahlreiche Schnitte und eine wechselnde Anzahl von Plana angelegt als auch die dazwischen ursprünglich belassenen Profilstege sukzsessive abgebaut und auf insgesamt 154, meist einzelnen und neu gerichteten Din A3-Blättern im M 1:20 dokumentiert. 
+## Ausgrabung
+
+Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kollektivgrabes [Ogasen I](https://www.jna.uni-kiel.de/index.php/jna/issue/view/23), Stadt Einbeck, Ldkr. Northeim in Niedersachsen. Die Ausgrabung erfolgte in vier Kampagnen von 1981 bis 1984 als Forschungs- und Lehrgrabung des Institutes für Ur- und Frühgeschichte der Georg-August-Universität in Niedersachsen (@rinneOdagsenUndGrossenrode2003a). In diesen Kampagnen  wurden zahlreiche Schnitte und eine wechselnde Anzahl von Plana angelegt als auch die dazwischen ursprünglich belassenen Profilstege sukzsessive abgebaut und auf insgesamt 154, meist einzelnen und neu gerichteten Din A3-Blättern im M 1:20 dokumentiert. Zu den jeweiligen Planblättern wurden Überlieger auf Transparentpapier mit Nivellierwerte und weiteren Angaben angefertigt. Die Einmessung erfolgte mit Theodolit, Nivelliergerät und Maßband.
+
+## Digitalisierung in AutoCAD
+
 Die die Digitalisierung der Planzeichnungen erfolgte im Mai und Juni 1997 in AutoCAD Ver. 12 (DOS) und Ver. 13 (Windows 3.1) auf einem Din-A3-Grafiktablett und mit Referenzierung anhand der Koordinatenangaben auf den Blättern. Jede Datei erhielt eine stringent vergeben Namen ODS(chnitt)<SchnittNr> P(lanum)<Planumnummer des Blattes> <fortlaufender Zähler>, z.B. ODS1P102. Für jedes Blatt wurde die Planumsangabe der Zeichnung,  die Planumsangabe mit Bezug auf die Angabe der Ausgräberin, die Bearbeitungszeit, die mittlere Angabe der Nivellierwerte  zum Fixpunkt der Oberfläche erfasst. Ergänzt wurden nachträglich die gängigen Metadaten der resultierenden Dateien.
 
 ```{r Table 1 List of drawings and DWG files., echo=FALSE}
 tab01<-read.table("./data-raw/od_files.txt", header = TRUE, sep = "\t", dec = ",")
-DT::datatable(tab01, options=list(pagelength=10), caption="Liste der Planzeichnungen und erstellten DWG-Dateien.")
-knitr::kable(tab01[1:9,])
+# if output is html table as interactive datatable else table with limit
+if (knitr::is_html_output()) {
+  DT::datatable(tab01, filter = "top", options=list(pagelength=10), caption="Liste der
+ Planzeichnungen und erstellten DWG-Dateien.")
+} else {
+  knitr::kable(tab01[1:9,])
+}
 ```
+
+Die Dateien sind einfach strukturiert. Folgende Layer wurden für Informationseinheiten verwendet: BEFUND, BEFUND_UNSICHER, BEFUNDSCHRAFF, FEUER, GRABUNGSGRENZE, GRENZE, KNOCHEN, KNOCHENSCHRAFF, STEINE, STEINESCHRAFF, TPROFIL. Alle Linien wurden als 2D-Polygone digitalisiert, allerdings wurden die Polygone nicht geschlossen, sondern bei der oft dichten Lage von Steinen und Knochen nur sauber an den gemeinsamen Punkten gefangen. 
+
+Als Störungen klassifizierte Befunde wurden horizontal schraffiert, Sandsteine erhielten eine Punktschraffur und gebrannte Steine eine diagonale Schraffur auf dem Layer "FEUER", um diese Information zu vermitteln. Knochen wurden ausschließlich für den optischen Effekt stets schraffiert. Die Schraffuren wurden nicht je Objekt, sondern meist für zahlreiche Objekte angelegt, wodurch diese Schraffuren als ein Objekt über mehrere Steine oder Knochen laufen und der Mittelpunkt dieser Schraffur räumlich nicht mit einem Objekt zusammenhängt. Dies trifft vor allem auf Knochen zu, bei den eher singulären Sandsteinen oder im Verbund gebrannten Steinen ist ein räumlicher Kontext eher gegeben.
+
+Symbole für Holzkohle, Rotlehm und verbrannte Knochen wurden grafische Blöcke mit den Namen HK, RL, LB eingefügt. Diese können mit dem jeweiligen Datei-, Layer- und Blocknamen als auch den Koordinaten aus allen Zeichnungen eines Ordners in eine Tabelle exportiert werden. 
+
+## Vorbereitung in AutoCAD
+
+Für den Export aller DWG-Datei in DXF eine Script geschrieben und als Startoption an autocad AutoCAD innerhalb eines Batch-Scriptes übergeben. Die Batch-Datei zum Starten von AutoCAD wird im Ordner der DWG-Dateien aufgerufen, wodurch das Arbeitsvezeichnis hier liegt und die Pfadangaben im Skript entfallen können.
+
+```{}
+REM Command to start ACAD with the script to convert all DWG files to DXF
+"c:\Program Files\Autodesk\AutoCAD 2014\acad.exe" /b od_convert_dwg2dxf.scr
+```
+
+Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer Leerzeile enden.
+
+```{}
+;; Script file for AutoCAD
+;; Start AutoCAD on the command line with option: /b script-file.scr"
+_open
+ODS1P101.DWG
+_saveas
+dxf
+16
+ODS1P101.DXF
+_close
+_open
+ODS1P102.DWG
+...
+```
+
+Die Umsetzung einem Batch-Script mit einer for-Schleife für alle DWG-Dateien im Ordner ist möglich, würde aber für jede Datei AutoCAD erneut starten.  
+
+# Literatur
