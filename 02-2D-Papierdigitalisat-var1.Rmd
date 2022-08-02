@@ -79,7 +79,7 @@ DROP TABLE IF EXISTS 'text_layer_3d_attr';
  - AutoCAD 2010, Quelle für aktuelle *kostenlose* Schulversionen:  [https://www.autodesk.de/education/edu-software/overview]
  
  - SpatiaLite Cookbook html [http://www.gaia-gis.it/gaia-sins/spatialite-cookbook/index.html]
-- SpatiaLite Funktionen [http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html] 
+ - SpatiaLite Funktionen [http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html] 
 
 AutoCAD ist eine sehr komplexe Software und Ausgrabungen können eine komplexe Struktur annehem, die es zu dokumentieren gilt. Erwarten Sie nicht, dass die notwendige Kompetenz beim Erstellen der digitalen Daten stets vorhanden war, auch der Autor (Chr. Rinne) ist hier nur Autodidakt. 
 
@@ -115,13 +115,15 @@ Die Dateien sind einfach strukturiert. Folgende Layer wurden für Informationsei
 
 Als Störungen klassifizierte Befunde wurden horizontal schraffiert, Sandsteine erhielten eine Punktschraffur und gebrannte Steine eine diagonale Schraffur auf dem Layer "FEUER", um diese Information zu vermitteln. Knochen wurden ausschließlich für den optischen Effekt stets schraffiert. Die Schraffuren wurden nicht je Objekt, sondern meist für zahlreiche Objekte angelegt, wodurch diese Schraffuren als ein Objekt über mehrere Steine oder Knochen laufen und der Mittelpunkt dieser Schraffur räumlich nicht mit einem Objekt zusammenhängt. Dies trifft vor allem auf Knochen zu, bei den eher singulären Sandsteinen oder im Verbund gebrannten Steinen ist ein räumlicher Kontext eher gegeben.
 
-Symbole für Holzkohle, Rotlehm und verbrannte Knochen wurden grafische Blöcke mit den Namen HK, RL, LB eingefügt. Diese können mit dem jeweiligen Datei-, Layer- und Blocknamen als auch den Koordinaten aus allen Zeichnungen eines Ordners in eine Tabelle exportiert werden. 
+Symbole für Holzkohle, Rotlehm und verbrannte Knochen wurden als grafische Blöcke mit den Namen HK, RL, LB eingefügt. Diese können mit dem jeweiligen Datei-, Layer- und Blocknamen als auch den Koordinaten aus allen Zeichnungen eines Ordners in eine Tabelle exportiert werden (s.u. Vorbereitung in AutoCAD).
+
+Ein Manko besteht in: 1. der eigenwilligen Verwendung des lokalen Koordinatensystems in Zentimetern und 2. dem Fehlen einer entsprechenden Angabe bei der Projektvariablen "Einheit" (*INSUNITS*). Dies liegt an der kreativen Inkompetenz des damaligen Bearbeiters (C. Rinne) beim Transfer der Daten zu dem Programm Surfer. Wir können das aber ohne viel Aufwand beheben (s.u., Vorbereitung in AutoCAD).
 
 ## Vorbereitung in AutoCAD
 
 ### Export in DXF
 
-Für den Export aller DWG-Datei in DXF eine Script geschrieben und als Startoption an autocad AutoCAD innerhalb eines Batch-Scriptes übergeben. Die Batch-Datei zum Starten von AutoCAD wird im Ordner der DWG-Dateien aufgerufen, wodurch das Arbeitsvezeichnis hier liegt und die Pfadangaben im Skript entfallen können.
+Für den Export aller DWG-Datei in DXF kann ein Script geschrieben und als Startoption an AutoCAD innerhalb eines Batch-Scriptes übergeben werden. Die Batch-Datei zum Starten von AutoCAD wird im Ordner der DWG-Dateien aufgerufen, wodurch das Arbeitsvezeichnis hier liegt und die Pfadangaben im Skript (*.scr) entfallen können.
 
 ```{}
 REM Command to start ACAD with the script to convert all DWG files to DXF
@@ -148,7 +150,7 @@ ODS1P102.DWG
 
 ### Einheiten
 
-AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar mit Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht. Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Dazu im vorangehenden Code nach dem Öffnen der DWG-Datei und vor dem Speichern (*_saveas*) folgenden Code einfügen. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
+AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar in Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht oder sogar eventuell auf Inch (Britisch). Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Dazu im vorangehenden Code nach dem Öffnen der DWG-Datei und vor dem Speichern (*_saveas*) den folgenden Code einfügen. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
 
 ```{}
 INSUNITS
@@ -173,16 +175,20 @@ Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überf�
 <blank line>
 ```
 
-Da dies nicht ganz selbsterklärend deshalb eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei "x" die Objekte zu, die folgenden Liste an Parametern (*dotted pairs*) erfüllen. Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt. 
+Da dies nicht ganz selbsterklärend ist, eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei "x" die Objekte zu, die der folgende Liste an Parametern entsprechen (*dotted pairs*, d.h. Attributkennziffer . Wert). Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt, wobei der jeweilige Objektname anhand des Zählers ermittelt wird. 
 
 ### Datenextraktion
 
-In AutoCAD können aus einzelnen oder auch vielen Zeichnungen eines Ordners diverse Elemente mit deren Attributen als Liste exportiert werden (*_dataextraction*). Die Befehlsführung ist weitgehend intuitiv. In den einzelnen Fenstern kann die Auswahl an Elemente und Attribute durch entsprechende Anzeigeoptionen bzw. Filter gesteuert werden. Im Beispiel Odagsen "Nur Blöcke Anzeigen" für die Auswahl von "HK", "LB" und "RL". Dann den Kategorienfilter auf "Allgemein", "Geometrie" und "Zeicnung" für die Auswahl der Attribute "Dateiname", "Layer", "Position x","Position Y" und "Position Z". **Wichtig**: der Export muss wegen der Punkt-Komma-Problematik als CSV-Date gespeichert werden.
+In AutoCAD können aus einzelnen oder auch vielen Zeichnungen eines Ordners diverse Elemente mit deren Attributen als Liste exportiert werden (*_dataextraction*). Die Befehlsführung ist weitgehend intuitiv. In den einzelnen Fenstern kann die Auswahl an Elemente und Attribute durch entsprechende Anzeigeoptionen bzw. Filter gesteuert werden. Im Beispiel Odagsen "Nur Blöcke Anzeigen" für die Auswahl von "HK", "LB" und "RL". Dann den Kategorienfilter auf "Allgemein", "Geometrie" und "Zeichnung" setzen um dan nur die Attribute "Dateiname", "Layer", "Position x","Position Y" und "Position Z" zu wählen. **Wichtig**: der Export muss wegen der Punkt-Komma-Problematik als CSV-Datei gespeichert werden.
 
 # SpatiaLite GUI
-I diesem Fall nicht die GUI, da nicht alle dxf-dataein importiert werden sollen
-spatialite.exe d:\.....\Odagsen1.sqlite
-.databases
+
+Starten Sie die SpatiaLite GUI und erstellen Sie eine neue, leere Datenbank. In diesem Fall werden die vielen DXF-Dateien nicht einzeln, sondern der gesamte Ordner importiert: "Menu > Advanced > Import DXF drawings". Wählen Sie dann nur eine DXF-Datei aus und ändern Sie im Importfenster dann die Angabe auf "(x) Import any DXF drawing file from selected folder". Da ein lokales Koordinatensystem verwendet wurde belassen Sie SRID auf "-1". Weitere Angaben: "(x) automatic 2D/3D", "(x) mixed layers (distinct by type)", "(X) none" für das *Ring handling* also das erkennen von sog. Donuts. Nach einer kurzen Wartezeit wurden folgende Tabellen und Sichten erstellt:
+
+- block_line_2d: die Linien der grafischen Blockdefinitionen in jeder Datei.
+- insline_layer_2d: eine Liste eingefügten Blöcke, u.a. mit Datei-, Layer und Blocknamen als auch x, y und z-Koordinate des Einfügepunktes.    
+
+
 
 
 # Literatur
