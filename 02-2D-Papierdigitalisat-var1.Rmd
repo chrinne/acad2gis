@@ -4,17 +4,17 @@ author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 always_allow_html: true
 output:
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -94,7 +94,7 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
 ### Ausgrabung
 
-Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kollektivgrabes [Ogasen I](https://www.jna.uni-kiel.de/index.php/jna/issue/view/23), Stadt Einbeck, Ldkr. Northeim in Niedersachsen. Die Ausgrabung erfolgte in vier Kampagnen von 1981 bis 1984 als Forschungs- und Lehrgrabung des Institutes für Ur- und Frühgeschichte der Georg-August-Universität in Niedersachsen (@rinneOdagsenUndGrossenrode2003a). In diesen Kampagnen  wurden zahlreiche Schnitte und eine wechselnde Anzahl von Plana angelegt als auch die dazwischen ursprünglich belassenen Profilstege sukzsessive abgebaut und auf insgesamt 154, meist einzelnen und neu gerichteten Din A3-Blättern im M 1:20 dokumentiert. Zu den jeweiligen Planblättern wurden Überlieger auf Transparentpapier mit Nivellierwerte und weiteren Angaben angefertigt. Die Einmessung erfolgte mit Theodolit, Nivelliergerät und Maßband.
+Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kollektivgrabes [Ogasen I](https://www.jna.uni-kiel.de/index.php/jna/issue/view/23), Stadt Einbeck, Ldkr. Northeim in Niedersachsen. Die Ausgrabung erfolgte in vier Kampagnen von 1981 bis 1984 als Forschungs- und Lehrgrabung des Institutes für Ur- und Frühgeschichte der Georg-August-Universität in Niedersachsen (@rinneOdagsenUndGrossenrode2003a; @heegeHauserTotenJungsteinzeitliche1989). In diesen Kampagnen  wurden zahlreiche Schnitte und eine wechselnde Anzahl von Plana angelegt als auch die dazwischen ursprünglich belassenen Profilstege sukzsessive abgebaut und auf insgesamt 154, meist einzelnen und neu gerichteten Din A3-Blättern im M 1:20 dokumentiert. Zu den jeweiligen Planblättern wurden Überlieger auf Transparentpapier mit Nivellierwerte und weiteren Angaben angefertigt. Die Einmessung erfolgte mit Theodolit, Nivelliergerät und Maßband.
 
 ### Digitalisierung in AutoCAD
 
@@ -125,14 +125,14 @@ Ein Manko besteht in: 1. der eigenwilligen Verwendung des lokalen Koordinatensys
 
 Für den Export aller DWG-Datei in DXF kann ein Script geschrieben und als Startoption an AutoCAD innerhalb eines Batch-Scriptes übergeben werden. Die Batch-Datei zum Starten von AutoCAD wird im Ordner der DWG-Dateien aufgerufen, wodurch das Arbeitsvezeichnis hier liegt und die Pfadangaben im Skript (*.scr) entfallen können.
 
-```{}
+```{bash eval=FALSE, include=TRUE}
 REM Command to start ACAD with the script to convert all DWG files to DXF
 "c:\Program Files\Autodesk\AutoCAD 2014\acad.exe" /b od_convert_dwg2dxf.scr
 ```
 
-Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer **Leerzeile enden**. Sollten Sie in der DWG Änderungen vornehmen (s.u.) und wollen diese auch speichern ergänzen Sie die den Befehl "*_qsave*". 
+Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer **Leerzeile enden**. Sollten Sie in der DWG Änderungen vornehmen (s.u.) und wollen diese auch speichern ergänzen Sie die den Befehl "*\_qsave*". 
 
-```{}
+```{bash eval=FALSE, include=TRUE}
 ;; Script file for AutoCAD
 ;; Start AutoCAD on the command line with option: /b script-file.scr"
 _open
@@ -150,18 +150,18 @@ ODS1P102.DWG
 
 ### Einheiten
 
-AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar in Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht oder sogar eventuell auf Inch (Britisch). Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Dazu im vorangehenden Code nach dem Öffnen der DWG-Datei und vor dem Speichern (*_saveas*) den folgenden Code einfügen. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
+AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar in Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht oder sogar eventuell auf Inch (Britisch). Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Dazu im vorangehenden Code nach dem Öffnen der DWG-Datei und vor dem Speichern (*\_saveas*) den folgenden Code einfügen. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
 
-```{}
+```{bash eval=FALSE, include=TRUE}
 INSUNITS
 6
 ```
 
 ### Schraffuren zerlegen
 
-Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überführen. Werden Schraffuren in die zugehörigen Elemente, z.B. einzelne Linien zerlegt, handelt es sich um den Import einer schlichten Geometrie. In einem GIS kann dann mit eine räumliche Verbindung (*spatial join*) zwischen den unterschiedlichen Objekten hergestellt werden. Im vorliegenden Fall könnten dann alle Steine mit mindestens einem Linienmittelpunkt vom Layer "FEUER"  als gebrannt markiert werden. Dazu muss vor der dem Speichern (*_saveas*) folgender Code eingefügt werden. 
+Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überführen. Werden Schraffuren in die zugehörigen Elemente, z.B. einzelne Linien zerlegt, handelt es sich um den Import einer schlichten Geometrie. In einem GIS kann dann mit eine räumliche Verbindung (*spatial join*) zwischen den unterschiedlichen Objekten hergestellt werden. Im vorliegenden Fall könnten dann alle Steine mit mindestens einem Linienmittelpunkt vom Layer "FEUER"  als gebrannt markiert werden. Dazu muss vor der dem Speichern (*\_saveas*) folgender Code eingefügt werden. 
 
-```{}
+```{bash eval=FALSE, include=TRUE}
 (setq SS (ssget "x" '((0 . "hatch") (8 . "FEUER"))))
 (if SS
  (progn
@@ -179,16 +179,20 @@ Da dies nicht ganz selbsterklärend ist, eine knappe Erläuterung: Die erste Zei
 
 ### Datenextraktion
 
-In AutoCAD können aus einzelnen oder auch vielen Zeichnungen eines Ordners diverse Elemente mit deren Attributen als Liste exportiert werden (*_dataextraction*). Die Befehlsführung ist weitgehend intuitiv. In den einzelnen Fenstern kann die Auswahl an Elemente und Attribute durch entsprechende Anzeigeoptionen bzw. Filter gesteuert werden. Im Beispiel Odagsen "Nur Blöcke Anzeigen" für die Auswahl von "HK", "LB" und "RL". Dann den Kategorienfilter auf "Allgemein", "Geometrie" und "Zeichnung" setzen um dan nur die Attribute "Dateiname", "Layer", "Position x","Position Y" und "Position Z" zu wählen. **Wichtig**: der Export muss wegen der Punkt-Komma-Problematik als CSV-Datei gespeichert werden.
+In AutoCAD können aus einzelnen oder auch vielen Zeichnungen eines Ordners diverse Elemente mit deren Attributen als Liste exportiert werden (*\_dataextraction*). Die Befehlsführung ist weitgehend intuitiv. In den einzelnen Fenstern kann die Auswahl an Elemente und Attribute durch entsprechende Anzeigeoptionen bzw. Filter gesteuert werden. Im Beispiel Odagsen "Nur Blöcke Anzeigen" für die Auswahl von "HK", "LB" und "RL". Dann den Kategorienfilter auf "Allgemein", "Geometrie" und "Zeichnung" setzen um dan nur die Attribute "Dateiname", "Layer", "Position x","Position Y" und "Position Z" zu wählen. **Wichtig**: der Export muss wegen der Punkt-Komma-Problematik als CSV-Datei gespeichert werden.
+
+In diesem Fall erkennt der DXF-Import sowohl die Blockdefinitionen als auch die Einfügepunkte und listet diese korrekt (s.u.). Eine Datenextraktion ist deshalb nicht notwendig.
 
 # SpatiaLite GUI
 
 Starten Sie die SpatiaLite GUI und erstellen Sie eine neue, leere Datenbank. In diesem Fall werden die vielen DXF-Dateien nicht einzeln, sondern der gesamte Ordner importiert: "Menu > Advanced > Import DXF drawings". Wählen Sie dann nur eine DXF-Datei aus und ändern Sie im Importfenster dann die Angabe auf "(x) Import any DXF drawing file from selected folder". Da ein lokales Koordinatensystem verwendet wurde belassen Sie SRID auf "-1". Weitere Angaben: "(x) automatic 2D/3D", "(x) mixed layers (distinct by type)", "(X) none" für das *Ring handling* also das erkennen von sog. Donuts. Nach einer kurzen Wartezeit wurden folgende Tabellen und Sichten erstellt:
 
 - block_line_2d: die Linien der grafischen Blockdefinitionen in jeder Datei.
-- insline_layer_2d: eine Liste eingefügten Blöcke, u.a. mit Datei-, Layer und Blocknamen als auch x, y und z-Koordinate des Einfügepunktes.    
-
-
+- insline_layer_2d: Eine Liste der eingefügten Blöcke in jeder Datei, u.a. mit Datei-, Layer und Blocknamen als auch x, y und z-Koordinate des Einfügepunktes.    
+- insline_layer_2d_view: Die Kombination der beiden vorgenannten Dateien in einer Sicht, die im vorliegenden Fall zwar offensichtlich korrekte Geometrien enthält, in QGIS im Kartenfenster aber dennoch nicht dargestellt wird.
+- line_layer_2d: sehr viele Linien  der diversen Objekte (Steine, Knochen etc.) mit jeweiligem Datei- und Layernamen.
+- polyg_layer_2d: Deutlich weniger Polygone mit jeweiligem Datei- und Layernamen.
+- text_layer_2d: Die Texte in den DXF-Dateien, z.B. Befund und Profilnummern, mit dem zugehörigen Einfügepunkt, Datei- und Layernamen. 
 
 
 # Literatur
