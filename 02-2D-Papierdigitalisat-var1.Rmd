@@ -194,5 +194,132 @@ Starten Sie die SpatiaLite GUI und erstellen Sie eine neue, leere Datenbank. In 
 - polyg_layer_2d: Deutlich weniger Polygone mit jeweiligem Datei- und Layernamen.
 - text_layer_2d: Die Texte in den DXF-Dateien, z.B. Befund und Profilnummern, mit dem zugehörigen Einfügepunkt, Datei- und Layernamen. 
 
+## Datenkontrolle
+
+### line_layer_2d
+
+Dpalte "geometry" Kontextmenü > "Malfomed geometries". Liefer 495 fehlerhafte Geometrien: 1. überwiegend wiederholter Knoten (*repeated vertex*), 2. fehlerhafte Geometrie durch zu wenig Punkte.
+
+1. Problem kontrollieren und reparieren:
+```
+Select astext(geometry)
+from line_layer_2d
+where feature_id = 32
+```
+```
+Select astext(sanitizegeometry(geometry))
+from line_layer_2d
+where feature_id = 32
+```
+
+Der Startpunkt ist doppelt aber nicht identisch mit dem Endpunkt, also kein Ring bzw. in CAD nicht korrekt geschlossenes Polygon. Also erneut ausführen und [Repair] bestätigen.
+
+Es bleiben drei fehlerhafte Geometrien (feature_id: 5570, 17618, 22049). Die erste besteht aus vier identischen Punkten. Wir kontrollieren das Problem und bereinigen es mit:
+
+```
+Select feature_id
+from line_layer_2d
+where st_length(geometry)=0
+```
+```
+delete from line_layer_2d
+where st_length(geometry)=0
+```
+
+
+
+```
+Select feature_id, layer, numpoints(geometry)
+from line_layer_2d
+where StartPoint(geometry) = EndPoint(geometry)
+order by 3
+```
+Liefert 14567 Linien, dabei auch eine mit drei Punkten. Letztere ist ein Objekt ohne Fläche und kann gelöscht werden.
+
+```
+delete from line_layer_2d
+where StartPoint(geometry) = EndPoint(geometry) 
+ and numpoints(geometry) < 4
+```
+
+```
+Select 'POLYGON(' || substr(astext(geometry),11)||')'
+from line_layer_2d
+where feature_id = 28
+```
+
+```
+INSERT INTO polyg_layer_2d (filename, layer, geometry)
+Select filename, layer, 
+ ST_GeomFromText('POLYGON(' || substr(astext(geometry),11)||')
+', -1)
+from line_layer_2d
+where StartPoint(geometry) = EndPoint(geometry)
+
+SELECT UpdateLayerStatistics('polyg_layer_2d', 'geometry')
+
+DELETE from line_layer_2d
+where StartPoint(geometry) = EndPoint(geometry)
+SELECT UpdateLayerStatistics('line_layer_2d', 'geometry')
+```
+Kontrolle der verbleibenden Linien
+
+```
+select count(feature_id), layer 
+from line_layer_2d
+group by 2
+```
+
+Befunde, Grabungsgrenze und Profile hier erstmal ignorieren, Ziel ist räumliche Statistik. Deshalb für Knochen und Steine möglichst viele Polygone schaffen:
+```
+select feature_id, numpoints(geometry), st_length(geometry)
+from line_layer_2d
+where layer = 'KNOCHEN'
+order by 2, 3
+```
+Viele Linien mit nur 2 Punkten, maximal 13 cm lang und drei Punkten bis 18 cm lang. Visuelle Kontrolle der Objekte zeigt vielfach an einer kurzen Kante offene Objekte, die einfach geschlossen werden kann. Dazu oft auch langgestreckte Objekte, die nicht geschlossen werden können, da z.B. eine Überschneidung in sich erfolgen würde.
+
+```
+create table polyg_tmp as 
+select feature_id, filename, layer,
+st_GeomFromText('POLYGON(' || substr(astext(geometry),11,length(astext(geometry))-11)
+ || ', ' || substr(astext(StartPoint(geometry)), 7) || ')', -1) as geometry
+from line_layer_2d;
+```
+
+```
+-- recover geometry column
+-- prüfen der Geometrie
+begin transaction;
+SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+FROM "polyg_tmp"
+GROUP BY 2, 3, 4;
+-- indexliste für später erstellen
+create temp table polyg_null_tmp as
+SELECT feature_id
+FROM polyg_tmp
+where geometry is null;
+-- nuller löschen
+DELETE FROM polyg_tmp
+where geometry is null;
+-- alles löschen, was nicht knochen oder Stein ist
+DELETE FROM polyg_tmp
+where layer not in ('KNOCHEN', 'STEINE');
+commit
+
+create temp table poly_invalidgeom_tmp as
+select feature_id
+from polyg_tmp
+where isvalid(geometry) = 0;
+
+delete from polyg_tmp
+where isvalid(geometry) = 0;
+```
+Sichtkontrolle zeigt weiterhin einige seltsame, sehr langschmale Objekte.
+
+
+
+Liefert am Ende erfolgreiche und fehlerhafte Geometrien. -> visuelle Kontrolle
+
 
 # Literatur
