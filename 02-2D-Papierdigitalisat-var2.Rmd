@@ -3,17 +3,17 @@ title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -88,7 +88,7 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
 ## AutoCAD Quelldatei (dxf)
 
-Es handelt sich um eine durch ein Grabensystem befestigte spätneolithische Siedlung der Wartberg Gruppe. Nach einigen Prospektionen erfolgte 1988 eine erste Ausgrabung durch das Landesdenkmalamt Hessen, Außenstelle Marburg und 1990 eine zweite Ausgrabung durch die Universität Marburg, Fachbereich Vor- und Frühgeschichte (@fiedlerBefestigteSiedlungJungsteinzeit1991). Beide Grabungen wurden in der seinerzeit üblichen Form mit Theodolit vermessen und auf Papier dokumentiert. Für eine erneute Ausgrabung ab 2021 wurden alle alten Planzeichnungen in einer CAD-Zeichnung fortlaufend digitalisiert. Das alternative Modell, je Zeichenblatt eine Zeichnung und nachfolgende Zusammenstellung zu 4 Gesamtzeichnungen bzw. für vier Plana wird am Bsp. von Odagsen durchgeführt (s.o.).
+Es handelt sich um eine durch ein Grabensystem befestigte spätneolithische Siedlung der Wartberg Gruppe. Nach einigen Prospektionen erfolgte 1988 eine erste und 1990 eine zweite Ausgrabung durch das Landesdenkmalamt Hessen, Außenstelle Marburg unter der wiss. Leitung von Prof. Dr. L. Fiedler (@fiedlerBefestigteSiedlungJungsteinzeit1991). Beide Grabungen wurden in der seinerzeit üblichen Form mit Theodolit vermessen und auf Papier dokumentiert. Für eine erneute Ausgrabung ab 2021 wurden alle alten Planzeichnungen in einer CAD-Zeichnung fortlaufend digitalisiert. Das alternative Modell, je Zeichenblatt eine Zeichnung und nachfolgende Zusammenstellung zu 4 Gesamtzeichnungen bzw. für vier Plana wird am Bsp. von Odagsen durchgeführt (s.o.).
 
 Die CAD-Datei wurde in AutoCAD 2020 (Schulversion) und 2010 bearbeitet, sie beinhaltet einen entsprechenden Hinweis. Die Layernamen der Zeichnung sind sehr normiert (s. Abb. 1) und es werden zahlreiche Blöcke auch mit Attributen verwendet.
 
@@ -122,7 +122,7 @@ Die Zeichnung enthält 1230 Polylinien (2d), 72 Linien, 18 Schraffuren, 1945 Blo
 | PL04_Befund | 245 | Continuous |
 | ... |  |  |
 
-Diese eindeutige Nomenklatur ist von großem Vorteil für die nachfolgende Organisation der Daten in einer SpatiaLite Datenbank. Sie erlaubt es mit einer SQL-Anweisung alle Filterbedingungen zu formulieren. Bei einer heterogenen  Nomenklatur müssen ggf. zwei *update*-Anweisungen formuliert oder mit komplexeren  *where*-Anweisungen agiert werden. Für die Visualisierung in QGIS kann auf die Planumsangabe im Layernamen sehr einfach zugegriffen werden. Alternativ muss mit einer ergänzenden Spalte zum Planum operiert werden (s.u.). 
+Diese eindeutige Nomenklatur ist von großem Vorteil für die nachfolgende Organisation der Daten in einer SpatiaLite Datenbank. Sie erlaubt es, mit einer SQL-Anweisung alle Filterbedingungen zu formulieren. Bei einer heterogenen  Nomenklatur müssen ggf. zwei *update*-Anweisungen formuliert oder mit komplexeren  *where*-Anweisungen agiert werden. Für die Visualisierung in QGIS kann auf die Planumsangabe im Layernamen sehr einfach zugegriffen werden. Alternativ muss mit einer ergänzenden Spalte zum Planum operiert werden (s.u.). 
 
 **Wichtig** Innerhalb von jedem Befund steht als Text und als Block mit Attribut eine Befundnummer, an jeder Profillinie steht ein Text mit der Bezeichnung des Profiles oder des jeweiligen Endpunktes. Diese Informationen werden in GIS räumlich verbunden.
 
