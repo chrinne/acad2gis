@@ -60,13 +60,13 @@ library(RSQLite)
 od1db<-dbConnect(RSQLite::SQLite(), dbname = "./data/Odagsen1.sqlite")
 ```
 
-```{sql basic-table-drop, eval=FALSE, connection=od1db, include=FALSE}
-DROP TABLE IF EXISTS 'hatch_layer_2d';
-DROP TABLE IF EXISTS 'hatch_layer_2D_pattern';
+```{sql 'basic drop table', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+DROP TABLE  IF EXISTS 'block_line_2d';
+DROP TABLE IF EXISTS 'insline_layer_2d';
+DROP VIEW IF EXISTS 'insline_layer_2d_view';
 DROP TABLE IF EXISTS 'line_layer_2d';
 DROP TABLE IF EXISTS 'polyg_layer_2d';
-DROP TABLE IF EXISTS 'text_layer_3d';
-DROP TABLE IF EXISTS 'text_layer_3d_attr';
+DROP TABLE IF EXISTS 'text_layer_2d';
 ```
 
 # Einführung
@@ -100,8 +100,9 @@ Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kolle
 
 Die die Digitalisierung der Planzeichnungen erfolgte im Mai und Juni 1997 in AutoCAD Ver. 12 (DOS) und Ver. 13 (Windows 3.1) auf einem Din-A3-Grafiktablett und mit Referenzierung anhand der Koordinatenangaben auf den Blättern. Jede Datei erhielt eine stringent vergeben Namen ODS(chnitt)<SchnittNr> P(lanum)<Planumnummer des Blattes> <fortlaufender Zähler>, z.B. ODS1P102. Für jedes Blatt wurde die Planumsangabe der Zeichnung,  die Planumsangabe mit Bezug auf die Angabe der Ausgräberin, die Bearbeitungszeit, die mittlere Angabe der Nivellierwerte  zum Fixpunkt der Oberfläche erfasst. Ergänzt wurden nachträglich die gängigen Metadaten der resultierenden Dateien.
 
-```{r Table 1 List of drawings and DWG files., echo=FALSE}
+```{r 'Table 1 List of drawings and DWG files.', echo=FALSE}
 tab01<-read.table("./data-raw/od_files.txt", header = TRUE, sep = "\t", dec = ",")
+colnames(tab01)<-tolower(colnames(tab01))
 # if output is html table as interactive datatable else table with limit
 if (knitr::is_html_output()) {
   DT::datatable(tab01, filter = "top", options=list(pagelength=10), caption="Liste der
@@ -113,11 +114,9 @@ if (knitr::is_html_output()) {
 
 Die Dateien sind einfach strukturiert. Folgende Layer wurden für Informationseinheiten verwendet: BEFUND, BEFUND_UNSICHER, BEFUNDSCHRAFF, FEUER, GRABUNGSGRENZE, GRENZE, KNOCHEN, KNOCHENSCHRAFF, STEINE, STEINESCHRAFF, TPROFIL. Alle Linien wurden als 2D-Polygone digitalisiert, allerdings wurden die Polygone nicht geschlossen, sondern bei der oft dichten Lage von Steinen und Knochen nur sauber an den gemeinsamen Punkten gefangen. 
 
-Als Störungen klassifizierte Befunde wurden horizontal schraffiert, Sandsteine erhielten eine Punktschraffur und gebrannte Steine eine diagonale Schraffur auf dem Layer "FEUER", um diese Information zu vermitteln. Knochen wurden ausschließlich für den optischen Effekt stets schraffiert. Die Schraffuren wurden nicht je Objekt, sondern meist für zahlreiche Objekte angelegt, wodurch diese Schraffuren als ein Objekt über mehrere Steine oder Knochen laufen und der Mittelpunkt dieser Schraffur räumlich nicht mit einem Objekt zusammenhängt. Dies trifft vor allem auf Knochen zu, bei den eher singulären Sandsteinen oder im Verbund gebrannten Steinen ist ein räumlicher Kontext eher gegeben.
+Als Störungen klassifizierte Befunde haben eine horizontale Linienschraffur, Sandsteine erhielten eine Punktschraffur und gebrannte Steine eine diagonale Schraffur auf dem Layer "FEUER", um diese Information zu vermitteln. Knochen wurden ausschließlich für den optischen Effekt stets schraffiert. Die Schraffuren wurden nicht je Objekt, sondern meist für zahlreiche Objekte angelegt, wodurch diese Schraffuren als ein Objekt über mehrere Steine oder Knochen laufen und der Mittelpunkt dieser Schraffur räumlich nicht mit einem Objekt zusammenhängt. Dies trifft vor allem auf Knochen zu, bei den eher singulären Sandsteinen oder im Verbund gebrannten Steinen ist ein räumlicher Kontext eher gegeben.
 
 Symbole für Holzkohle, Rotlehm und verbrannte Knochen wurden als grafische Blöcke mit den Namen HK, RL, LB eingefügt. Diese können mit dem jeweiligen Datei-, Layer- und Blocknamen als auch den Koordinaten aus allen Zeichnungen eines Ordners in eine Tabelle exportiert werden (s.u. Vorbereitung in AutoCAD).
-
-Ein Manko besteht in: 1. der eigenwilligen Verwendung des lokalen Koordinatensystems in Zentimetern und 2. dem Fehlen einer entsprechenden Angabe bei der Projektvariablen "Einheit" (*INSUNITS*). Dies liegt an der kreativen Inkompetenz des damaligen Bearbeiters (C. Rinne) beim Transfer der Daten zu dem Programm Surfer. Wir können das aber ohne viel Aufwand beheben (s.u., Vorbereitung in AutoCAD).
 
 ## Vorbereitung in AutoCAD
 
@@ -125,14 +124,14 @@ Ein Manko besteht in: 1. der eigenwilligen Verwendung des lokalen Koordinatensys
 
 Für den Export aller DWG-Datei in DXF kann ein Script geschrieben und als Startoption an AutoCAD innerhalb eines Batch-Scriptes übergeben werden. Die Batch-Datei zum Starten von AutoCAD wird im Ordner der DWG-Dateien aufgerufen, wodurch das Arbeitsvezeichnis hier liegt und die Pfadangaben im Skript (*.scr) entfallen können.
 
-```{bash eval=FALSE, include=TRUE}
+```{bash 'Starten von AutoCAD mit einem Skript.', eval=FALSE, include=TRUE}
 REM Command to start ACAD with the script to convert all DWG files to DXF
 "c:\Program Files\Autodesk\AutoCAD 2014\acad.exe" /b od_convert_dwg2dxf.scr
 ```
 
 Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer **Leerzeile enden**. Sollten Sie in der DWG Änderungen vornehmen (s.u.) und wollen diese auch speichern ergänzen Sie die den Befehl "*\_qsave*". 
 
-```{bash eval=FALSE, include=TRUE}
+```{bash 'Skript zur Konvertierung.', eval=FALSE, include=TRUE}
 ;; Script file for AutoCAD
 ;; Start AutoCAD on the command line with option: /b script-file.scr"
 _open
@@ -152,16 +151,26 @@ ODS1P102.DWG
 
 AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar in Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht oder sogar eventuell auf Inch (Britisch). Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Dazu im vorangehenden Code nach dem Öffnen der DWG-Datei und vor dem Speichern (*\_saveas*) den folgenden Code einfügen. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
 
-```{bash eval=FALSE, include=TRUE}
+```{bash 'Skript-Befehl für Einheit "Meter".', eval=FALSE, include=TRUE}
 INSUNITS
 6
 ```
 
+Sollten die Zeichnungen darüber hinaus tatsächlich falsch skaliert sein, kann dies in einem Zug mit folgender Befehlsfolge im Script erledigt werden. Die Leerzeile nach "all" beendet die Objektwahl und ".01" ist durch den notwendigen Faktor zu ersetzen. Für die Optik können Sie noch ein "Zoom" "G" (Grenzen) ergänzen.
+
+```{bash 'Skript-Befehl für die Skalierung.', eval=FALSE, include=TRUE}
+_scale
+all
+
+0,0,0
+.01
+```
+
 ### Schraffuren zerlegen
 
-Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überführen. Werden Schraffuren in die zugehörigen Elemente, z.B. einzelne Linien zerlegt, handelt es sich um den Import einer schlichten Geometrie. In einem GIS kann dann mit eine räumliche Verbindung (*spatial join*) zwischen den unterschiedlichen Objekten hergestellt werden. Im vorliegenden Fall könnten dann alle Steine mit mindestens einem Linienmittelpunkt vom Layer "FEUER"  als gebrannt markiert werden. Dazu muss vor der dem Speichern (*\_saveas*) folgender Code eingefügt werden. 
+Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überführen. Werden Schraffuren in die zugehörigen Elemente, z.B. einzelne Linien zerlegt, handelt es sich um den Import einer schlichten Geometrie. In einem GIS kann dann mit eine räumliche Verbindung (*spatial join*) zwischen den unterschiedlichen Objekten hergestellt werden. Im vorliegenden Fall könnten dann alle Steine mit mindestens einem Linienmittelpunkt vom Layer "FEUER"  als gebrannt markiert werden. Dazu muss vor dem Speichern (*\_saveas*) folgender Code eingefügt werden. 
 
-```{bash eval=FALSE, include=TRUE}
+```{bash 'Skript-Befehl für das Auflösen von Schraffuren.', eval=FALSE, include=TRUE}
 (setq SS (ssget "x" '((0 . "hatch") (8 . "FEUER"))))
 (if SS
  (progn
@@ -196,25 +205,39 @@ Starten Sie die SpatiaLite GUI und erstellen Sie eine neue, leere Datenbank. In 
 
 ## Datenkontrolle
 
+Es folgt eine Datenkontrolle mit Überarbeitung, die vor allem den Transfer der fast ausschließlich als Linien erkannten Steine und Knochen betrifft. Die Befundlinien sind in den vorliegenden kleinen Planausschnitten stark zerstückelt und bilden einen Sonderfall. In "normalen" Fällen können Befundgrenzen analog zu dem hier an Steinen und Knochen durchgeführten Prozess behandelt werden. 
+
 ### line_layer_2d
 
-Dpalte "geometry" Kontextmenü > "Malfomed geometries". Liefer 495 fehlerhafte Geometrien: 1. überwiegend wiederholter Knoten (*repeated vertex*), 2. fehlerhafte Geometrie durch zu wenig Punkte.
+Zahlreiche **fehlerhafte Geometrien** können über das Kontextmenü repariert werden:
+Spalte "geometry" Kontextmenü > "Malfomed geometries". Liefert 501 fehlerhafte Geometrien: 1. überwiegend wiederholter Knoten (*repeated vertex*), 2. fehlerhafte Geometrie durch zu wenig Punkte. Bestätigen Sie [Repair], um das erste Problem direkt zu lösen. Sollten Sie die Daten prüfen und von Hand korrigieren wollen, dann führen Sie folgende Befehle nacheinander aus.
 
-1. Problem kontrollieren und reparieren:
-```
-Select astext(geometry)
-from line_layer_2d
-where feature_id = 32
-```
-```
-Select astext(sanitizegeometry(geometry))
-from line_layer_2d
-where feature_id = 32
+```{sql 'Überprüfen und korrigieren der Geometrien.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+-- Eine Geometrie mit Fehler zur Kontrolle ansehen
+Select astext(geometry) from line_layer_2d 
+ where feature_id = 32;
+-- Die Korrektur ansehen
+Select astext(sanitizegeometry(geometry)) from line_layer_2d 
+ where feature_id = 32;
+-- Die Korrektur ausführen
+Update line_layer_2d
+ set geometry = sanitizegeometry(geometry)
+ where isvalid(geometry) = 0;
 ```
 
-Der Startpunkt ist doppelt aber nicht identisch mit dem Endpunkt, also kein Ring bzw. in CAD nicht korrekt geschlossenes Polygon. Also erneut ausführen und [Repair] bestätigen.
+```{sql 'empty sql code chunk', , connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+```
 
-Es bleiben drei fehlerhafte Geometrien (feature_id: 5570, 17618, 22049). Die erste besteht aus vier identischen Punkten. Wir kontrollieren das Problem und bereinigen es mit:
+Es bleiben 78 fehlerhafte Geometrien mit "Pepeated vertex. Too few points in geometry ...".  Die Kontrolle der Geometrie von Feature 412 zeigt drei identische Punkte. Veralgemeinernd können wir mit folgender Abfrage diese fehlerhaften erst finden und dann auch löschen:
+
+```{sql 'Fehlerhafte Geometrien: Doppelter Punkt.', , connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+-- Fehlerhafte Linien aus idetischen Punkten finden.
+select * from line_layer_2d
+where length(geometry) = 0 and isvalid(geometry) = 0;
+-- Löschen dieser Linien
+Delete from line_layer_2d
+where length (geometry) = 0 and isvalid(geometry) = 0;
+```
 
 ```
 Select feature_id
