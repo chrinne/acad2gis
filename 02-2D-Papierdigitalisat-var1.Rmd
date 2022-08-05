@@ -36,13 +36,13 @@ description: Handreichung zur Nachnutzung von CAD-Digitalisaten einer auf Papier
 
 Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist die  Retrodigitalisierung (2D) einer Papierdokumentation einer über vier Jahre erfolgten Ausgrabung des Kollektivgrabes Odagsen 1, Stadt Einbeck, Ldkr. Northeim. Hierbei geht es nicht um einen schönen, interaktiven Plan in einem GIS am Ende, sondern um die Nachnutzung möglichst vieler Daten für eine räumliche Statistik.
 
-| Anmerkung |
-|----|
-| - Menüpfade oder Abfolgen von Fenstern werden mit schlichten Pfeilen dargestellt: "Datei > Speichern". |
-| - Tastaturkürzel, die ich gerne Nutze, stehen in Spitzklammern je Taste: \<strg> + \<c>. |
-| - Schalter auf Formularen werden in [] gesetzt: [OK] |
-| - Zur Darstellung von Befehlen im Text nutze ich die in Markdown übliche Darstellung von Code oder eben Anweisungen an den Computer: ```anweisung```. |
-| - Der Text enthält viele Links die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck. |
+**Anmerkungen** 
+
+ - Menüpfade oder Abfolgen von Fenstern werden mit schlichten Pfeilen dargestellt: "Datei > Speichern". 
+ - Tastaturkürzel, die ich gerne Nutze, stehen in Spitzklammern je Taste: \<strg> + \<c>. 
+ - Schalter auf Formularen werden in [] gesetzt: [OK] 
+ - Zur Darstellung von Befehlen im Text nutze ich die in Markdown übliche Darstellung von Code oder eben Anweisungen an den Computer: ```anweisung```. 
+ - Der Text enthält viele Links die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck. 
 
 ```{r knitr global options, include=FALSE}
 # Global options for knitr
@@ -205,7 +205,7 @@ Starten Sie die SpatiaLite GUI und erstellen Sie eine neue, leere Datenbank. In 
 
 ## Datenkontrolle
 
-Es folgt eine Datenkontrolle mit Überarbeitung, die vor allem den Transfer der fast ausschließlich als Linien erkannten Steine und Knochen betrifft. Die Befundlinien sind in den vorliegenden kleinen Planausschnitten stark zerstückelt und bilden einen Sonderfall. In "normalen" Fällen können Befundgrenzen analog zu dem hier an Steinen und Knochen durchgeführten Prozess behandelt werden. 
+Es folgt eine Datenkontrolle mit Überarbeitung, die vor allem die Geometrien betrifft. Hier sind teils durch das unsaubere Digitalisieren doppelte Knoten vorhanden oder einige Polygone überschneiden sich selbst. 
 
 ### line_layer_2d
 
@@ -225,12 +225,9 @@ Update line_layer_2d
  where isvalid(geometry) = 0;
 ```
 
-```{sql 'empty sql code chunk', , connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-```
+Es bleiben 78 fehlerhafte Geometrien mit "Repeated vertex. Too few points in geometry ...".  Die Kontrolle der Geometrie von Feature 412 zeigt drei identische Punkte. Veralgemeinernd können wir mit folgender Abfrage diese fehlerhaften erst finden und dann auch löschen:
 
-Es bleiben 78 fehlerhafte Geometrien mit "Pepeated vertex. Too few points in geometry ...".  Die Kontrolle der Geometrie von Feature 412 zeigt drei identische Punkte. Veralgemeinernd können wir mit folgender Abfrage diese fehlerhaften erst finden und dann auch löschen:
-
-```{sql 'Fehlerhafte Geometrien: Doppelter Punkt.', , connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+```{sql 'Fehlerhafte Geometrien: Doppelter Punkt.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Fehlerhafte Linien aus idetischen Punkten finden.
 select * from line_layer_2d
 where length(geometry) = 0 and isvalid(geometry) = 0;
@@ -239,32 +236,110 @@ Delete from line_layer_2d
 where length (geometry) = 0 and isvalid(geometry) = 0;
 ```
 
-```
-Select feature_id
-from line_layer_2d
-where st_length(geometry)=0
-```
-```
-delete from line_layer_2d
-where st_length(geometry)=0
-```
+Weitere Merkmale von möglicherweise fehlerhafter Linien können gesucht und ggf. gelöscht werden.
 
-
-
-```
+Eine Linie besteht nur aus drei Punkten, wobei Start und Endpunkt identisch sind. 
+```{sql 'Ring mit drei Punkten', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 Select feature_id, layer, numpoints(geometry)
 from line_layer_2d
-where StartPoint(geometry) = EndPoint(geometry)
-order by 3
-```
-Liefert 14567 Linien, dabei auch eine mit drei Punkten. Letztere ist ein Objekt ohne Fläche und kann gelöscht werden.
-
-```
-delete from line_layer_2d
-where StartPoint(geometry) = EndPoint(geometry) 
- and numpoints(geometry) < 4
+where StartPoint(geometry) = EndPoint(geometry) and numpoints(geometry) = 3;
 ```
 
+Je nach Kontext könnten Linien mit zwei Punkten oder besonders kurze Linien auch weniger plausibel sein. 
+
+Abschließend ein Überblick über den Datenbestand:
+
+```{sql 'Datenbestand in line_layer_2d', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+SELECT Count(*), layer, GeometryType("geometry")
+FROM "line_layer_2d"
+GROUP BY 2, 3;
+```
+
+### poly_layer_2d
+
+Auch hier zuerst **fehlerhafte Geometrien** über das Kontextmenü reparieren:
+Spalte "geometry" Kontextmenü > "Malfomed geometries": Wiederholte Knoten (*repeated vertex*) reparieren. Ringe mit weniger als 4 Punkten entsprechen den Linien mit identischem Start- und Endpunkt. fehlerhafte Geometrie durch zu wenig Punkte. Bestätigen Sie [Repair], um das erste Problem direkt zu lösen. Die zugehörige Funktion ist "ST_MakeValid(geom)". Sollten Sie die weiteren fehlerhaften Daten prüfen und von Hand korrigieren wollen, dann führen Sie folgende Befehle nacheinander aus.
+
+```{sql 'Ringe mit weniger als vier Knoten.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+select feature_id, layer, astext(geometry) 
+from polyg_layer_2d
+where isvalid(geometry) = 0 and st_npoints(geometry) < 4;
+-- Löschen mit Delete from ...
+```
+
+Es bleiben noch die sich überschneidenden Polygone, zur visuellen Kontrolle 
+
+```{sql 'empty sql code chunk', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+select feature_id, layer, st_npoints(geometry), astext(geometry) 
+from polyg_layer_2d
+where isvalid(geometry) = 0
+```
+
+Die Polygone können mit der Funktion "ST_RingsCutAtNodes(geom)" in ein Multilinenobjekt zerteilt werden. Etwas einfacher und eventuell auch erfolgreich ist die Anwendung der Funktion "MakeValid(geometry)", die ein Multipolygon zurückgibt. Um keinen gemischten Geometrien zu erhalten sollte die Geometrie von polyg_layer_2d angepasst werden.
+
+```{sql 'Multipolygone erstellen und fehlerhafte reparieren.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+update polyg_layer_2d
+set geometry = CastToMulti(MakeValid(geometry));
+```
+
+Zur Kontrolle und falls nur einfache Polygone gewünscht sein sollten:
+
+```{sql 'Multipolygone mit mehr als einem Polygon listen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+SELECT *, st_numgeometries(geometry)
+FROM "polyg_layer_2d"
+where st_numgeometries(geometry) > 1;
+```
+
+Die Fälle mit genau zwei Subpolygonen können getrennt werden.  
+
+```{sql 'Multipolygone trennen', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+with recursive cnt(x) as 
+ (select 1
+ union all
+ select x+1 from cnt limit 2)
+select filename, layer, CastToMulti(ST_GeometryN(geometry, x)) as geometry 
+ from cnt, polyg_layer_2d as b
+  where ST_NumGeometries(b.geometry) = 2; 
+```
+
+Um diese Multipolygone mit genau zwei Subpolygonen getrennt anzufügen muss eine "*insert into*"-Anweisung eingefügt werden. Danach noch die ursprünglichen Polygone löschen und die Tabellen der Datenbank aktualisieren.
+
+```{sql 'Multipolygone trennen und anfügen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+with recursive cnt(x) as 
+ (select 1
+ union all
+ select x+1 from cnt limit 2)
+insert into polyg_layer_2d (filename, layer, geometry)
+select filename, layer, CastToMulti(ST_GeometryN(geometry, x)) as geometry 
+ from cnt, polyg_layer_2d as b
+  where ST_NumGeometries(b.geometry) = 2;
+```
+
+```{sql 'Originale Multipolygone löschen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+Delete from polyg_layer_2d
+ where ST_NumGeometries(geometry) = 2;
+```
+
+```{sql 'Tabellen der Datenbank aktualisieren.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+Select UpdateLayerStatistics();
+```
+  
+Zum Abschluss der Prüfung eine Übersicht zum Datenbestand:
+
+```{sql 'Datenbestand in polyg_layer_2d', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+SELECT Count(*), layer, GeometryType("geometry")
+FROM "polyg_layer_2d"
+GROUP BY 2, 3;
+```
+
+## Linien zu Polygone
+
+Sehr viele Steine und Knochen wurden nicht als Polygone erkannt.
+
+
+
+inien 
+Folgendes durch st_buildarea()
 ```
 Select 'POLYGON(' || substr(astext(geometry),11)||')'
 from line_layer_2d
