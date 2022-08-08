@@ -61,12 +61,12 @@ od1db<-dbConnect(RSQLite::SQLite(), dbname = "./data/Odagsen1.sqlite")
 ```
 
 ```{sql 'basic drop table', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-DROP TABLE  IF EXISTS 'block_line_2d';
-DROP TABLE IF EXISTS 'insline_layer_2d';
-DROP VIEW IF EXISTS 'insline_layer_2d_view';
-DROP TABLE IF EXISTS 'line_layer_2d';
-DROP TABLE IF EXISTS 'polyg_layer_2d';
-DROP TABLE IF EXISTS 'text_layer_2d';
+DROP TABLE  IF EXISTS "block_line_2d";
+DROP TABLE IF EXISTS "insline_layer_2d";
+DROP VIEW IF EXISTS "insline_layer_2d_view";
+DROP TABLE IF EXISTS "line_layer_2d";
+DROP TABLE IF EXISTS "polyg_layer_2d";
+DROP TABLE IF EXISTS "text_layer_2d";
 ```
 
 # Einführung
@@ -214,35 +214,43 @@ Spalte "geometry" Kontextmenü > "Malfomed geometries". Liefert 501 fehlerhafte 
 
 ```{sql 'Überprüfen und korrigieren der Geometrien.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Eine Geometrie mit Fehler zur Kontrolle ansehen
-Select astext(geometry) from line_layer_2d 
- where feature_id = 32;
+Select astext("geometry") from "line_layer_2d" 
+ where "feature_id" = 32;
 -- Die Korrektur ansehen
-Select astext(sanitizegeometry(geometry)) from line_layer_2d 
- where feature_id = 32;
+Select astext(sanitizegeometry("geometry")) from "line_layer_2d" 
+ where "feature_id" = 32;
 -- Die Korrektur ausführen
-Update line_layer_2d
- set geometry = sanitizegeometry(geometry)
- where isvalid(geometry) = 0;
+Update "line_layer_2d"
+ set geometry = sanitizegeometry("geometry")
+ where isvalid("geometry") = 0;
 ```
 
-Es bleiben 78 fehlerhafte Geometrien mit "Repeated vertex. Too few points in geometry ...".  Die Kontrolle der Geometrie von Feature 412 zeigt drei identische Punkte. Veralgemeinernd können wir mit folgender Abfrage diese fehlerhaften erst finden und dann auch löschen:
+Es bleiben 78 fehlerhafte Geometrien mit "Repeated vertex. Too few points in geometry ...".  Die Kontrolle der Geometrie von Feature 412 zeigt drei identische Punkte. Verallgemeinernd können wir mit folgender Abfrage diese fehlerhaften erst finden und dann auch löschen:
 
 ```{sql 'Fehlerhafte Geometrien: Doppelter Punkt.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Fehlerhafte Linien aus idetischen Punkten finden.
-select * from line_layer_2d
-where length(geometry) = 0 and isvalid(geometry) = 0;
+select * from "line_layer_2d"
+where st_length("geometry") = 0 and isvalid("geometry") <> 1;
 -- Löschen dieser Linien
-Delete from line_layer_2d
-where length (geometry) = 0 and isvalid(geometry) = 0;
+Delete from "line_layer_2d"
+where st_length ("geometry") = 0 and isvalid("geometry") <> 1;
 ```
 
 Weitere Merkmale von möglicherweise fehlerhafter Linien können gesucht und ggf. gelöscht werden.
 
 Eine Linie besteht nur aus drei Punkten, wobei Start und Endpunkt identisch sind. 
 ```{sql 'Ring mit drei Punkten', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-Select feature_id, layer, numpoints(geometry)
-from line_layer_2d
-where StartPoint(geometry) = EndPoint(geometry) and numpoints(geometry) = 3;
+Select "feature_id", "layer", numpoints("geometry")
+from "line_layer_2d"
+where StartPoint("geometry") = EndPoint("geometry") and numpoints("geometry") = 3;
+```
+
+Die Linien könnten alledings als einfach Linie von Bedeutung sein, deshalb wird nur ein Punkt gelöscht. Anmerkung: die Funktion RemovePoint zählt 0-basiert.
+
+```{sql 'Ring aus 3 Punkten korrigieren.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+Update "line_layer_2d"
+set "geometry" = RemovePoint("geometry",2)
+where StartPoint("geometry") = EndPoint("geometry") and numpoints("geometry") = 3;
 ```
 
 Je nach Kontext könnten Linien mit zwei Punkten oder besonders kurze Linien auch weniger plausibel sein. 
@@ -250,7 +258,7 @@ Je nach Kontext könnten Linien mit zwei Punkten oder besonders kurze Linien auc
 Abschließend ein Überblick über den Datenbestand:
 
 ```{sql 'Datenbestand in line_layer_2d', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-SELECT Count(*), layer, GeometryType("geometry")
+SELECT Count(*), "layer", GeometryType("geometry")
 FROM "line_layer_2d"
 GROUP BY 2, 3;
 ```
@@ -261,33 +269,44 @@ Auch hier zuerst **fehlerhafte Geometrien** über das Kontextmenü reparieren:
 Spalte "geometry" Kontextmenü > "Malfomed geometries": Wiederholte Knoten (*repeated vertex*) reparieren. Ringe mit weniger als 4 Punkten entsprechen den Linien mit identischem Start- und Endpunkt. fehlerhafte Geometrie durch zu wenig Punkte. Bestätigen Sie [Repair], um das erste Problem direkt zu lösen. Die zugehörige Funktion ist "ST_MakeValid(geom)". Sollten Sie die weiteren fehlerhaften Daten prüfen und von Hand korrigieren wollen, dann führen Sie folgende Befehle nacheinander aus.
 
 ```{sql 'Ringe mit weniger als vier Knoten.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-select feature_id, layer, astext(geometry) 
-from polyg_layer_2d
-where isvalid(geometry) = 0 and st_npoints(geometry) < 4;
--- Löschen mit Delete from ...
+select "feature_id", "layer", astext("geometry") 
+from "polyg_layer_2d"
+where isvalid("geometry") = 0 and st_npoints("geometry") < 4;
+-- Löschen mit 
+Delete from "polyg_layer_2d"
+where isvalid("geometry") = 0 and st_npoints("geometry") < 4;
 ```
 
 Es bleiben noch die sich überschneidenden Polygone, zur visuellen Kontrolle 
 
 ```{sql 'empty sql code chunk', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-select feature_id, layer, st_npoints(geometry), astext(geometry) 
-from polyg_layer_2d
-where isvalid(geometry) = 0
+select "feature_id", "layer", st_npoints("geometry"), astext("geometry") 
+from "polyg_layer_2d"
+where isvalid("geometry") <> 1;
 ```
 
-Die Polygone können mit der Funktion "ST_RingsCutAtNodes(geom)" in ein Multilinenobjekt zerteilt werden. Etwas einfacher und eventuell auch erfolgreich ist die Anwendung der Funktion "MakeValid(geometry)", die ein Multipolygon zurückgibt. Um keinen gemischten Geometrien zu erhalten sollte die Geometrie von polyg_layer_2d angepasst werden.
+Die Polygone können mit der Funktion "ST_RingsCutAtNodes(geom)" in ein Multilinenobjekt zerteilt werden. Etwas einfacher und eventuell auch erfolgreich ist die Anwendung der Funktion "MakeValid("geometry")" die ein Multipolygon zurückgibt. Um keine gemischten Geometrien zu erhalten, was durch die Prüfroutinen auch verhindert wird, sollte die Geometrie von polyg_layer_2d vorher angepasst und zu einem Multipolygon verändert werden.
 
 ```{sql 'Multipolygone erstellen und fehlerhafte reparieren.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-update polyg_layer_2d
-set geometry = CastToMulti(MakeValid(geometry));
+-- Prüfroutinen entfernen, die Parameter sind hier Text.
+select DiscardGeometryColumn('polyg_layer_2d', 'geometry');
+-- Nur die Konvertierung zu Multipolygon und Reparatur ausführen.
+update "polyg_layer_2d"
+set "geometry" = CastToMulti(MakeValid("geometry"));
+-- Prüfroutine wieder einrichten, Parameter als Text.
+select RecoverGeometryColumn('polyg_layer_2d', 'geometry', -1, 'MULTIPOLYGON','XY');
+-- Rückgabewert 1 wenn ok, dennoch zur Kontrolle.
+SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+FROM "polyg_layer_2d"
+GROUP BY 2, 3, 4
 ```
 
 Zur Kontrolle und falls nur einfache Polygone gewünscht sein sollten:
 
 ```{sql 'Multipolygone mit mehr als einem Polygon listen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-SELECT *, st_numgeometries(geometry)
+SELECT *, st_numgeometries("geometry")
 FROM "polyg_layer_2d"
-where st_numgeometries(geometry) > 1;
+where st_numgeometries("geometry") > 1;
 ```
 
 Die Fälle mit genau zwei Subpolygonen können getrennt werden.  
@@ -297,9 +316,9 @@ with recursive cnt(x) as
  (select 1
  union all
  select x+1 from cnt limit 2)
-select filename, layer, CastToMulti(ST_GeometryN(geometry, x)) as geometry 
- from cnt, polyg_layer_2d as b
-  where ST_NumGeometries(b.geometry) = 2; 
+select "filename", "layer", AsText(CastToMulti(ST_GeometryN("geometry", x))) as "geometry"
+ from cnt,  "polyg_layer_2d" as "b"
+  where ST_NumGeometries("b"."geometry") = 2; 
 ```
 
 Um diese Multipolygone mit genau zwei Subpolygonen getrennt anzufügen muss eine "*insert into*"-Anweisung eingefügt werden. Danach noch die ursprünglichen Polygone löschen und die Tabellen der Datenbank aktualisieren.
@@ -309,15 +328,15 @@ with recursive cnt(x) as
  (select 1
  union all
  select x+1 from cnt limit 2)
-insert into polyg_layer_2d (filename, layer, geometry)
-select filename, layer, CastToMulti(ST_GeometryN(geometry, x)) as geometry 
- from cnt, polyg_layer_2d as b
+insert into  "polyg_layer_2d" ("filename", "layer", geometry)
+select "filename", "layer", CastToMulti(ST_GeometryN(geometry, x)) as geometry 
+ from cnt,  "polyg_layer_2d" as b
   where ST_NumGeometries(b.geometry) = 2;
 ```
 
 ```{sql 'Originale Multipolygone löschen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 Delete from polyg_layer_2d
- where ST_NumGeometries(geometry) = 2;
+ where ST_NumGeometries("geometry") = 2;
 ```
 
 ```{sql 'Tabellen der Datenbank aktualisieren.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
@@ -327,50 +346,108 @@ Select UpdateLayerStatistics();
 Zum Abschluss der Prüfung eine Übersicht zum Datenbestand:
 
 ```{sql 'Datenbestand in polyg_layer_2d', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-SELECT Count(*), layer, GeometryType("geometry")
+SELECT Count(*), "layer", GeometryType("geometry")
 FROM "polyg_layer_2d"
 GROUP BY 2, 3;
 ```
 
 ## Linien zu Polygone
 
-Sehr viele Steine und Knochen wurden nicht als Polygone erkannt.
+Sehr viele Steine und Knochen wurden nicht als Polygone erkannt. Im Folgenden werden möglichst viele Linien, die eigentlich Polygone darstellen sollten in diese konvertiert und in die Tabelle der Polygone verschoben (kopieren & löschen). Bei diesem Pauschalen vorgehen können natürlich Ungenauigkeiten und Fehler entstehen, u.a. erneut sich selbst schneidende Polygone. Je nach Aufwand ist also eine Einzelfallprüfung vorzuziehen. 
+
+Ein Problem sind die in AutoCAD nicht geschlossen Polygone bei denen Startpunkt und Endpunkt nur identische Werte haben. Dies ist durch eine *insert*-Anweisung einfach zu lösen. Danach sollte der Index von polyg_layer_2d aktualisiert und die ursprünglichen Linien gelöscht werden. 
+
+```{sql 'Linien mit identsichem Start- und Endpunkt', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+-- Anzahl der betreffenden Linien feststellen. 
+SELECT Count(*), layer from line_layer_2d
+where StartPoint("geometry") = EndPoint("geometry")
+group by 2;
+-- Diese Linien zu einem Multipolygon konvertieren mit weiteren Attributen 
+-- in die Tabelle der Polygone schreiben
+Insert into  "polyg_layer_2d" ("filename", "layer", geometry)
+select "filename", "layer", CastToMulti(ST_BuildArea("geometry")) as geometry
+from line_layer_2d where StartPoint("geometry") = EndPoint("geometry") 
+ and layer in ('KNOCHEN', 'STEINE');
+-- Den Index aktualisieren
+Select RecoverSpatialIndex("polyg_layer_2d", "geometry");
+-- Die ursprünglichen Linien löschen
+Delete from polyg_layer_2d
+where StartPoint("geometry") = EndPoint("geometry")
+ and layer in ('KNOCHEN', 'STEINE');
+```
+
+Bei den verbleibenden Linien sind noch sehr viele auf den Layern STEINE und KNOCHEN. Um deren Struktur zu prüfen können einige Abfragen ausgeführt werden:
+
+```{sql '', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+-- Anzahl der optionlen Linien mit mehr als 2 Knoten feststellen. 
+SELECT Count(*), layer from line_layer_2d
+where numpoints("geometry") > 2 
+ and layer in ('KNOCHEN', 'STEINE')
+group by 2;
+-- Wie viele würden, direkt geschlossen, ein valides Polygon ergeben?
+SELECT Count(*), layer 
+from line_layer_2d
+where numpoints("geometry") > 2 
+ and layer in ('KNOCHEN', 'STEINE')
+ and isvalid(ST_BuildArea("geometry")) = 1
+group by 2;
+```
+
+Zwei Strategien: 1. Wenn immer nur eine Segment fehlt, können diese direkt mit ST_BuildArea in ein Polygon umgesetzt werden. 2. Erst eine Kollektion von Linien und dann ST_Polygonize.
+
+```
+-- Je Datei und Layertyp aus den Linien Polygone bilden
+create table tmp_polygonize as
+select "filename", "layer", casttomulti(st_polygonize("geometry")) as geometry
+from line_layer_2d
+where layer in ('KNOCHEN', 'STEINE')  
+group by 1, 2;
+-- Fehlerhafte Polygone erst ansehen?, dann löschen
+delete from tmp_polygonize
+where isvalid("geometry") <> 1;
+-- Geometrie prüfen
+SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+FROM "tmp_polygonize"
+GROUP BY 2, 3, 4
+-- Danach die geometriespalte wieder herstellen
+select RecoverGeometryColumn("tmp_polygonize", "geometry", -1, "MULTIPOLYGON", "XY");
+```
 
 
 
 inien 
 Folgendes durch st_buildarea()
 ```
-Select 'POLYGON(' || substr(astext(geometry),11)||')'
+Select 'POLYGON(' || substr(astext("geometry"),11)||')'
 from line_layer_2d
-where feature_id = 28
+where "feature_id" = 28
 ```
 
 ```
-INSERT INTO polyg_layer_2d (filename, layer, geometry)
-Select filename, layer, 
- ST_GeomFromText('POLYGON(' || substr(astext(geometry),11)||')
+INSERT INTO  "polyg_layer_2d" ("filename", "layer", geometry)
+Select "filename", "layer", 
+ ST_GeomFromText('POLYGON(' || substr(astext("geometry"),11)||')
 ', -1)
 from line_layer_2d
-where StartPoint(geometry) = EndPoint(geometry)
+where StartPoint("geometry") = EndPoint("geometry")
 
-SELECT UpdateLayerStatistics('polyg_layer_2d', 'geometry')
+SELECT UpdateLayerStatistics("polyg_layer_2d", "geometry")
 
 DELETE from line_layer_2d
-where StartPoint(geometry) = EndPoint(geometry)
-SELECT UpdateLayerStatistics('line_layer_2d', 'geometry')
+where StartPoint("geometry") = EndPoint("geometry")
+SELECT UpdateLayerStatistics("line_layer_2d", "geometry")
 ```
 Kontrolle der verbleibenden Linien
 
 ```
-select count(feature_id), layer 
+select count("feature_id"), layer 
 from line_layer_2d
 group by 2
 ```
 
 Befunde, Grabungsgrenze und Profile hier erstmal ignorieren, Ziel ist räumliche Statistik. Deshalb für Knochen und Steine möglichst viele Polygone schaffen:
 ```
-select feature_id, numpoints(geometry), st_length(geometry)
+select "feature_id", numpoints("geometry"), st_length("geometry")
 from line_layer_2d
 where layer = 'KNOCHEN'
 order by 2, 3
@@ -379,9 +456,9 @@ Viele Linien mit nur 2 Punkten, maximal 13 cm lang und drei Punkten bis 18 cm la
 
 ```
 create table polyg_tmp as 
-select feature_id, filename, layer,
-st_GeomFromText('POLYGON(' || substr(astext(geometry),11,length(astext(geometry))-11)
- || ', ' || substr(astext(StartPoint(geometry)), 7) || ')', -1) as geometry
+select "feature_id", "filename", layer,
+st_GeomFromText('POLYGON(' || substr(astext("geometry"),11,length(astext("geometry"))-11)
+ || ', ' || substr(astext(StartPoint("geometry")), 7) || ')', -1) as geometry
 from line_layer_2d;
 ```
 
@@ -394,7 +471,7 @@ FROM "polyg_tmp"
 GROUP BY 2, 3, 4;
 -- indexliste für später erstellen
 create temp table polyg_null_tmp as
-SELECT feature_id
+SELECT "feature_id"
 FROM polyg_tmp
 where geometry is null;
 -- nuller löschen
@@ -406,12 +483,12 @@ where layer not in ('KNOCHEN', 'STEINE');
 commit
 
 create temp table poly_invalidgeom_tmp as
-select feature_id
+select "feature_id"
 from polyg_tmp
-where isvalid(geometry) = 0;
+where isvalid("geometry") = 0;
 
 delete from polyg_tmp
-where isvalid(geometry) = 0;
+where isvalid("geometry") = 0;
 ```
 Sichtkontrolle zeigt weiterhin einige seltsame, sehr langschmale Objekte.
 
