@@ -447,14 +447,28 @@ set geometry = ST_MakeValid(geometry)
 where IsValid(geometry) <> 1;
 ```
 
-Der dann vorliegende saubere Datenbestand kann an die Tabelle polyg_layer_2d angefügt werden.
+Der dann vorliegende saubere Datenbestand kann an die Tabelle polyg_layer_2d angefügt und die Tabelle selbst gelöscht werden.
 
-```
+```{sql 'Tabelle der individuelle Polygone anfügen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 Insert into polyg_layer_2d (filename, layer, geometry)
-select filename, layer, geom from tmp_polygonize_single;
+select filename, layer, geometry from tmp_polygonize_single;
+-- löschen
+Drop table if exists tmp_polygonize_single;
 ```
 
-Wenn gewünscht noch die verarbeitetn Linien der aus line_layer_2d löschen.
+Wenn gewünscht noch die verarbeitetn Linien aus line_layer_2d löschen. Auch dies erfolgt mit Rekursion.
+
+```
+with recursive liste (id) as (
+ select 1 
+  union all
+ select id + 1 from liste limit (select count(*) from tmp_Polygonize)
+ )
+delete from cp_line_layer_2d
+ where feature_id in (
+  select fids from tmp_Polygonize, liste 
+   where tmp_Polygonize.rowid = liste.id)
+```
 
 
 
