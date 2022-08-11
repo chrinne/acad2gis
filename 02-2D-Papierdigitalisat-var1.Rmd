@@ -285,7 +285,9 @@ from "polyg_layer_2d"
 where isvalid("geometry") <> 1;
 ```
 
-Die Polygone können mit der Funktion "ST_RingsCutAtNodes(geom)" in ein Multilinenobjekt zerteilt werden. Etwas einfacher und eventuell auch erfolgreich ist die Anwendung der Funktion "MakeValid("geometry")" die ein Multipolygon zurückgibt. Um keine gemischten Geometrien zu erhalten, was durch die Prüfroutinen auch verhindert wird, sollte die Geometrie von polyg_layer_2d vorher angepasst und zu einem Multipolygon verändert werden.
+Die Polygone können mit der Funktion "ST_RingsCutAtNodes(geom)" in ein Multilinenobjekt zerteilt werden. Etwas einfacher und eventuell auch erfolgreich ist die Anwendung der Funktion "MakeValid("geometry")" die ein Multipolygon zurückgibt. Um keine gemischten Geometrien zu erhalten, was durch die Prüfroutinen (*trigger*) auch verhindert wird, sollte die Geometrie von polyg_layer_2d vorher angepasst und zu einem Multipolygon verändert werden.
+
+Anmerkung: Durch das Entfernen  der Geometrieinformationen erscheinen die Index-Tabellen aus dem Bereich "Spatial Index" nach einem *refresh* jetzt unter den "User Data". Mit Wiederherstellung des Index werden diese alten Indices gelöscht.
 
 ```{sql 'Multipolygone erstellen und fehlerhafte reparieren.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Prüfroutinen entfernen, die Parameter sind hier Text.
@@ -295,6 +297,9 @@ update "polyg_layer_2d"
 set "geometry" = CastToMulti(MakeValid("geometry"));
 -- Prüfroutine wieder einrichten, Parameter als Text.
 select RecoverGeometryColumn('polyg_layer_2d', 'geometry', -1, 'MULTIPOLYGON','XY');
+-- Rückgabewert 1 wenn ok.
+-- Und den Index der Geometrie neu generieren.
+Select CreateSpatialIndex('polyg_layer_2d', 'geometry');
 -- Rückgabewert 1 wenn ok, dennoch zur Kontrolle.
 SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
 FROM "polyg_layer_2d"
@@ -355,7 +360,126 @@ GROUP BY 2, 3;
 
 Sehr viele Steine und Knochen wurden nicht als Polygone erkannt. Im Folgenden werden möglichst viele Linien, die eigentlich Polygone darstellen sollten in diese konvertiert und in die Tabelle der Polygone verschoben (kopieren & löschen). Bei diesem Pauschalen vorgehen können natürlich Ungenauigkeiten und Fehler entstehen, u.a. erneut sich selbst schneidende Polygone. Je nach Aufwand ist also eine Einzelfallprüfung vorzuziehen. 
 
-Ein Problem sind die in AutoCAD nicht geschlossen Polygone bei denen Startpunkt und Endpunkt nur identische Werte haben. Dies ist durch eine *insert*-Anweisung einfach zu lösen. Danach sollte der Index von polyg_layer_2d aktualisiert und die ursprünglichen Linien gelöscht werden. 
+### Pauschale Methode
+
+Die Funktion ST_Polygonize aggregiert die Geometrien und versucht dann aus den Linien Polygone zu bilden. Durch das Aggregieren je Datei und Layer werden nachfolgend stets nur die jeweils möglichen räumlichen Bezüge der Linien berücksichtigt. Ergänzend wird eine Liste der jeweils eingehenden "*feature_id*" erstellt (*group_concat()*), um die Zugehörigen Linien identifizieren und löschen zu können. Je Datei und Layer wird ein Multipolygon erstellt.
+
+```{sql 'Linien aggregieren und Polygone in eine temporäre Datei schreiben.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+create table tmp_polygonize as
+select "filename", "layer", group_concat(feature_id) as fids,
+ CastToMulti(st_Polygonize("geometry")) as geometry
+from line_layer_2d
+where layer in ('KNOCHEN', 'STEINE')  
+group by 1, 2;
+```
+
+```{sql 'Geometrie von tmp_polygonize prüfen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+FROM "tmp_polygonize"
+GROUP BY 2, 3, 4
+```
+
+```{sql 'Wenn nötig fehlerhafte Geometrien in tmp_polygonize löschen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+Delete from "tmp_polygonize"
+where geometry is null
+```
+
+```{sql 'Geometriespalte von tmp_polygonize registrieren.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+Select RecoverGeometryColumn('tmp_polygonize', 'geometry', -1, 'MULTIPOLYGON', 'XY')
+
+```{sql 'Index von tmp_polygonize erstellen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+Select CreateSpatialIndex('tmp_polygonize', 'geometry');
+```
+
+Im nächsten Schritt werden die zahlreichen Steine bzw. Knochen die je Datei als Multipolygon vorliegen getrennt. Die Anweisung unterscheidet sich deutlich von der vorangehenden Version für genau zwei Polygone in einem Multipolygon.
+
+```{sql 'Tabelle individuelle Polygone per Rekursion erstellen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+create table tmp_polygonize_single as
+-- Beginn der Rekursion mit zwei Zählern und Geometrie
+with recursive liste ( fid, n, single ) as (
+ -- Erster Datensatz
+ select 1 as fid, 0 as n, NULL as single
+ UNION ALL
+ -- Alle folgenden Datensätze mit Entscheidung (case)
+ select
+ case -- Wenn die n-te Geometrie im Multipolygone existiert behalte fid sonst fid + 1
+  when (select st_geometryn(geometry, n + 1) from tmp_Polygonize where rowid = fid) not null
+   then fid
+  else 
+   fid + 1
+ end as fid, -- end case und Zuweisung
+ case -- dito nur n + 1 sonst 0
+  when (select st_geometryn(geometry, n + 1) from tmp_Polygonize where rowid = fid) not null
+   then n + 1
+  else
+   0
+ end as n, -- end case und Zuweisung
+ case -- dito nur wird jetzt die Geometrie übernommen
+  when (select st_geometryn(geometry, n + 1) from tmp_Polygonize where rowid = fid) not null
+   then (select st_geometryn(geometry, n + 1) from tmp_Polygonize where rowid = fid)
+  else
+    NULL
+ end as single
+from liste
+ -- Limit für die Rekursion.
+  where fid <= (select count(*) from tmp_polygonize))
+select a.fid, a.n, CastToMulti(single) as geometry, b.filename, b.layer from liste as a 
+ left join tmp_polygonize as b on a.fid = b.rowid
+ where single not null;
+```
+
+Diese Rekursive Abfrage ist mit den eingefügten Bedingungen (*case*) etwas umfangreicher aber nicht wirklich kompliziert. Die Grundkonstruktion der durch Rekursion gebauten Tabelle ("liste") hat drei Spalten für zwei Zähler ("fid", "n") und eine Geometrie (single). Die Tabelle liste startet mit dem Setzen der Zähler, wobei fid = 1 und n = 0 gesetzt wird. Für alle weiteren Datenzeilen wird per *select*-Anweisung geprüft, ob im Multipolygon der gegebenen "fid" das n+1 Polygon existiert. Ist dies vorhanden wird in den drei Bedingungen: 1. die fid behalten, 2: n + 1 gesetzt und 3. das zugehörige Polygon abgefragt. Alternativ wird für das nächste Multipolygon: 1. fid + 1 und 2. n zurück auf 0 gesetzt sowie 3. keine Geometrie übergeben. Das Limit für die Rekursion wird auf die Anzahl der vorhandenen Multipolygone gesetzt. Die Abfrage der durch Rekursion erstellten Tabelle "liste" wird per *join* mit den Eingangsdaten verbunden um nachträglich Dateiname und Layer zu erhalten. Zugleich wird das einfache Polygon wieder zu einem Multipolygon für die weitere Bearbeitung umgewandelt und auf die Zeilen mit Geometrie gefiltert. Die knapp 14400 Polygone werden in weniger als 3 Sekunden verarbeitet.
+
+Danach erfolgt das Prüfen, Wiederherstellen und ggf. Korrektur der Geometriespalte.  
+
+```{sql 'Tabelle individuelle Polygone prüfen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+FROM "tmp_polygonize_single"
+GROUP BY 2, 3, 4;
+
+Select RecoverGeometryColumn('tmp_polygonize_single', 'geometry', -1, 'MULTIPOLYGON', 'XY');
+
+Select *, AsText(geometry) from tmp_polygonize_single
+where IsValid(geometry) <> 1;
+
+Update tmp_polygonize_single
+set geometry = ST_MakeValid(geometry)
+where IsValid(geometry) <> 1;
+```
+
+Der dann vorliegende saubere Datenbestand kann an die Tabelle polyg_layer_2d angefügt werden.
+
+```
+Insert into polyg_layer_2d (filename, layer, geometry)
+select filename, layer, geom from tmp_polygonize_single;
+```
+
+Wenn gewünscht noch die verarbeitetn Linien der aus line_layer_2d löschen.
+
+
+
+
+```
+-- Je Datei und Layertyp aus den Linien Polygone bilden
+create table tmp_polygonize as
+select "filename", "layer", casttomulti(st_polygonize("geometry")) as geometry
+from line_layer_2d
+where layer in ('KNOCHEN', 'STEINE')  
+group by 1, 2;
+-- Fehlerhafte Polygone erst ansehen?, dann löschen
+delete from tmp_polygonize
+where isvalid("geometry") <> 1;
+-- Geometrie prüfen
+SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+FROM "tmp_polygonize"
+GROUP BY 2, 3, 4
+-- Danach die geometriespalte wieder herstellen
+select RecoverGeometryColumn("tmp_polygonize", "geometry", -1, "MULTIPOLYGON", "XY");
+```
+
+
+
+Ein Problem sind die in AutoCAD nicht geschlossen Polygone bei denen Startpunkt und Endpunkt identische Werte haben. Dies ist durch eine *insert*-Anweisung einfach zu lösen. Danach sollte der Index von polyg_layer_2d aktualisiert und die ursprünglichen Linien gelöscht werden. 
 
 ```{sql 'Linien mit identsichem Start- und Endpunkt', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Anzahl der betreffenden Linien feststellen. 
@@ -391,26 +515,6 @@ where numpoints("geometry") > 2
  and layer in ('KNOCHEN', 'STEINE')
  and isvalid(ST_BuildArea("geometry")) = 1
 group by 2;
-```
-
-Zwei Strategien: 1. Wenn immer nur eine Segment fehlt, können diese direkt mit ST_BuildArea in ein Polygon umgesetzt werden. 2. Erst eine Kollektion von Linien und dann ST_Polygonize.
-
-```
--- Je Datei und Layertyp aus den Linien Polygone bilden
-create table tmp_polygonize as
-select "filename", "layer", casttomulti(st_polygonize("geometry")) as geometry
-from line_layer_2d
-where layer in ('KNOCHEN', 'STEINE')  
-group by 1, 2;
--- Fehlerhafte Polygone erst ansehen?, dann löschen
-delete from tmp_polygonize
-where isvalid("geometry") <> 1;
--- Geometrie prüfen
-SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
-FROM "tmp_polygonize"
-GROUP BY 2, 3, 4
--- Danach die geometriespalte wieder herstellen
-select RecoverGeometryColumn("tmp_polygonize", "geometry", -1, "MULTIPOLYGON", "XY");
 ```
 
 
