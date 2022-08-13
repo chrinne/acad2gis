@@ -118,9 +118,9 @@ Als Störungen klassifizierte Befunde haben eine horizontale Linienschraffur, Sa
 
 Symbole für Holzkohle, Rotlehm und verbrannte Knochen wurden als grafische Blöcke mit den Namen HK, RL, LB eingefügt. Diese können mit dem jeweiligen Datei-, Layer- und Blocknamen als auch den Koordinaten aus allen Zeichnungen eines Ordners in eine Tabelle exportiert werden (s.u. Vorbereitung in AutoCAD).
 
-## Vorbereitung in AutoCAD
+# Vorbereitung in AutoCAD
 
-### Export in DXF
+## Export in DXF
 
 Für den Export aller DWG-Datei in DXF kann ein Script geschrieben und als Startoption an AutoCAD innerhalb eines Batch-Scriptes übergeben werden. Die Batch-Datei zum Starten von AutoCAD wird im Ordner der DWG-Dateien aufgerufen, wodurch das Arbeitsvezeichnis hier liegt und die Pfadangaben im Skript (*.scr) entfallen können.
 
@@ -147,7 +147,7 @@ ODS1P102.DWG
 <blank line>
 ```
 
-### Einheiten
+## Einheiten
 
 AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar in Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht oder sogar eventuell auf Inch (Britisch). Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Dazu im vorangehenden Code nach dem Öffnen der DWG-Datei und vor dem Speichern (*\_saveas*) den folgenden Code einfügen. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
 
@@ -166,7 +166,7 @@ all
 .01
 ```
 
-### Schraffuren zerlegen
+## Schraffuren zerlegen
 
 Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überführen. Werden Schraffuren in die zugehörigen Elemente, z.B. einzelne Linien zerlegt, handelt es sich um den Import einer schlichten Geometrie. In einem GIS kann dann mit eine räumliche Verbindung (*spatial join*) zwischen den unterschiedlichen Objekten hergestellt werden. Im vorliegenden Fall könnten dann alle Steine mit mindestens einem Linienmittelpunkt vom Layer "FEUER"  als gebrannt markiert werden. Dazu muss vor dem Speichern (*\_saveas*) folgender Code eingefügt werden. 
 
@@ -186,7 +186,7 @@ Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überf�
 
 Da dies nicht ganz selbsterklärend ist, eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei "x" die Objekte zu, die der folgende Liste an Parametern entsprechen (*dotted pairs*, d.h. Attributkennziffer . Wert). Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt, wobei der jeweilige Objektname anhand des Zählers ermittelt wird. 
 
-### Datenextraktion
+## Datenextraktion
 
 In AutoCAD können aus einzelnen oder auch vielen Zeichnungen eines Ordners diverse Elemente mit deren Attributen als Liste exportiert werden (*\_dataextraction*). Die Befehlsführung ist weitgehend intuitiv. In den einzelnen Fenstern kann die Auswahl an Elemente und Attribute durch entsprechende Anzeigeoptionen bzw. Filter gesteuert werden. Im Beispiel Odagsen "Nur Blöcke Anzeigen" für die Auswahl von "HK", "LB" und "RL". Dann den Kategorienfilter auf "Allgemein", "Geometrie" und "Zeichnung" setzen um dan nur die Attribute "Dateiname", "Layer", "Position x","Position Y" und "Position Z" zu wählen. **Wichtig**: der Export muss wegen der Punkt-Komma-Problematik als CSV-Datei gespeichert werden.
 
@@ -229,7 +229,7 @@ Es bleiben 78 fehlerhafte Geometrien mit "Repeated vertex. Too few points in geo
 
 ```{sql 'Fehlerhafte Geometrien: Doppelter Punkt.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Fehlerhafte Linien aus idetischen Punkten finden.
-select * from "line_layer_2d"
+Select * from "line_layer_2d"
 where st_length("geometry") = 0 and isvalid("geometry") <> 1;
 -- Löschen dieser Linien
 Delete from "line_layer_2d"
@@ -258,9 +258,9 @@ Je nach Kontext könnten Linien mit zwei Punkten oder besonders kurze Linien auc
 Abschließend ein Überblick über den Datenbestand:
 
 ```{sql 'Datenbestand in line_layer_2d', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-SELECT Count(*), "layer", GeometryType("geometry")
-FROM "line_layer_2d"
-GROUP BY 2, 3;
+Select Count(*), "layer", GeometryType("geometry")
+from "line_layer_2d"
+group by 2, 3;
 ```
 
 ### poly_layer_2d
@@ -269,7 +269,7 @@ Auch hier zuerst **fehlerhafte Geometrien** über das Kontextmenü reparieren:
 Spalte "geometry" Kontextmenü > "Malfomed geometries": Wiederholte Knoten (*repeated vertex*) reparieren. Ringe mit weniger als 4 Punkten entsprechen den Linien mit identischem Start- und Endpunkt. fehlerhafte Geometrie durch zu wenig Punkte. Bestätigen Sie [Repair], um das erste Problem direkt zu lösen. Die zugehörige Funktion ist "ST_MakeValid(geom)". Sollten Sie die weiteren fehlerhaften Daten prüfen und von Hand korrigieren wollen, dann führen Sie folgende Befehle nacheinander aus.
 
 ```{sql 'Ringe mit weniger als vier Knoten.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-select "feature_id", "layer", astext("geometry") 
+Select "feature_id", "layer", astext("geometry") 
 from "polyg_layer_2d"
 where isvalid("geometry") = 0 and st_npoints("geometry") < 4;
 -- Löschen mit 
@@ -280,7 +280,7 @@ where isvalid("geometry") = 0 and st_npoints("geometry") < 4;
 Es bleiben noch die sich überschneidenden Polygone, zur visuellen Kontrolle 
 
 ```{sql 'empty sql code chunk', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-select "feature_id", "layer", st_npoints("geometry"), astext("geometry") 
+Select "feature_id", "layer", st_npoints("geometry"), astext("geometry") 
 from "polyg_layer_2d"
 where isvalid("geometry") <> 1;
 ```
@@ -291,26 +291,26 @@ Anmerkung: Durch das Entfernen  der Geometrieinformationen erscheinen die Index-
 
 ```{sql 'Multipolygone erstellen und fehlerhafte reparieren.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Prüfroutinen entfernen, die Parameter sind hier Text.
-select DiscardGeometryColumn('polyg_layer_2d', 'geometry');
+Select DiscardGeometryColumn('polyg_layer_2d', 'geometry');
 -- Nur die Konvertierung zu Multipolygon und Reparatur ausführen.
-update "polyg_layer_2d"
+Update "polyg_layer_2d"
 set "geometry" = CastToMulti(MakeValid("geometry"));
 -- Prüfroutine wieder einrichten, Parameter als Text.
-select RecoverGeometryColumn('polyg_layer_2d', 'geometry', -1, 'MULTIPOLYGON','XY');
+Select RecoverGeometryColumn('polyg_layer_2d', 'geometry', -1, 'MULTIPOLYGON','XY');
 -- Rückgabewert 1 wenn ok.
 -- Und den Index der Geometrie neu generieren.
 Select CreateSpatialIndex('polyg_layer_2d', 'geometry');
 -- Rückgabewert 1 wenn ok, dennoch zur Kontrolle.
-SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
-FROM "polyg_layer_2d"
-GROUP BY 2, 3, 4
+Select Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+from "polyg_layer_2d"
+group by 2, 3, 4
 ```
 
 Zur Kontrolle und falls nur einfache Polygone gewünscht sein sollten:
 
 ```{sql 'Multipolygone mit mehr als einem Polygon listen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-SELECT *, st_numgeometries("geometry")
-FROM "polyg_layer_2d"
+Select *, st_numgeometries("geometry")
+from "polyg_layer_2d"
 where st_numgeometries("geometry") > 1;
 ```
 
@@ -321,7 +321,8 @@ with recursive cnt(x) as
  (select 1
  union all
  select x+1 from cnt limit 2)
-select "filename", "layer", AsText(CastToMulti(ST_GeometryN("geometry", x))) as "geometry"
+-- Ende Rekursion
+Select "filename", "layer", AsText(CastToMulti(ST_GeometryN("geometry", x))) as "geometry"
  from cnt,  "polyg_layer_2d" as "b"
   where ST_NumGeometries("b"."geometry") = 2; 
 ```
@@ -333,7 +334,7 @@ with recursive cnt(x) as
  (select 1
  union all
  select x+1 from cnt limit 2)
-insert into  "polyg_layer_2d" ("filename", "layer", geometry)
+Insert into  "polyg_layer_2d" ("filename", "layer", geometry)
 select "filename", "layer", CastToMulti(ST_GeometryN(geometry, x)) as geometry 
  from cnt,  "polyg_layer_2d" as b
   where ST_NumGeometries(b.geometry) = 2;
@@ -351,9 +352,9 @@ Select UpdateLayerStatistics();
 Zum Abschluss der Prüfung eine Übersicht zum Datenbestand:
 
 ```{sql 'Datenbestand in polyg_layer_2d', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-SELECT Count(*), "layer", GeometryType("geometry")
-FROM "polyg_layer_2d"
-GROUP BY 2, 3;
+Select Count(*), "layer", GeometryType("geometry")
+from "polyg_layer_2d"
+group by 2, 3;
 ```
 
 ## Linien zu Polygone
@@ -365,7 +366,7 @@ Sehr viele Steine und Knochen wurden nicht als Polygone erkannt. Im Folgenden we
 Die Funktion ST_Polygonize aggregiert die Geometrien und versucht dann aus den Linien Polygone zu bilden. Durch das Aggregieren je Datei und Layer werden nachfolgend stets nur die jeweils möglichen räumlichen Bezüge der Linien berücksichtigt. Ergänzend wird eine Liste der jeweils eingehenden "*feature_id*" erstellt (*group_concat()*), um die Zugehörigen Linien identifizieren und löschen zu können. Je Datei und Layer wird ein Multipolygon erstellt.
 
 ```{sql 'Linien aggregieren und Polygone in eine temporäre Datei schreiben.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-create table tmp_polygonize as
+Create table tmp_polygonize as
 select "filename", "layer", group_concat(feature_id) as fids,
  CastToMulti(st_Polygonize("geometry")) as geometry
 from line_layer_2d
@@ -374,9 +375,9 @@ group by 1, 2;
 ```
 
 ```{sql 'Geometrie von tmp_polygonize prüfen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
-FROM "tmp_polygonize"
-GROUP BY 2, 3, 4
+Select Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+from "tmp_polygonize"
+group by 2, 3, 4
 ```
 
 ```{sql 'Wenn nötig fehlerhafte Geometrien in tmp_polygonize löschen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
@@ -394,12 +395,12 @@ Select CreateSpatialIndex('tmp_polygonize', 'geometry');
 Im nächsten Schritt werden die zahlreichen Steine bzw. Knochen die je Datei als Multipolygon vorliegen getrennt. Die rekursive Anweisung unterscheidet sich deutlich von der vorangehenden Version für genau zwei Polygone in einem Multipolygon.
 
 ```{sql 'Tabelle individuelle Polygone per Rekursion erstellen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-create table tmp_polygonize_single as
+Create table tmp_polygonize_single as
 -- Beginn der Rekursion mit zwei Zählern und Geometrie
 with recursive liste ( fid, n, single ) as (
  -- Erster Datensatz
  select 1 as fid, 0 as n, NULL as single
- UNION ALL
+ union all
  -- Alle folgenden Datensätze mit Entscheidung (case)
  select
  case -- Wenn die n-te Geometrie im Multipolygone existiert behalte fid sonst fid + 1
@@ -423,19 +424,19 @@ with recursive liste ( fid, n, single ) as (
 from liste
  -- Limit für die Rekursion.
   where fid <= (select count(*) from tmp_polygonize))
-select a.fid, a.n, CastToMulti(single) as geometry, b.filename, b.layer from liste as a 
+Select a.fid, a.n, CastToMulti(single) as geometry, b.filename, b.layer from liste as a 
  left join tmp_polygonize as b on a.fid = b.rowid
  where single not null;
 ```
 
-Diese Rekursive Abfrage ist mit den eingefügten Bedingungen (*case*) etwas umfangreicher aber nicht wirklich kompliziert. Die Grundkonstruktion der durch Rekursion gebauten Tabelle ("liste") hat drei Spalten für zwei Zähler ("fid", "n") und eine Geometrie (single). Die Tabelle liste startet mit dem Setzen der Zähler, wobei fid = 1 und n = 0 gesetzt wird. Für alle weiteren Datenzeilen wird per *select*-Anweisung geprüft, ob im Multipolygon der gegebenen "fid" das n+1 Polygon existiert. Ist dies vorhanden wird in den drei Bedingungen: 1. die fid behalten, 2: n + 1 gesetzt und 3. das zugehörige Polygon abgefragt. Alternativ wird für das nächste Multipolygon: 1. fid + 1 und 2. n zurück auf 0 gesetzt sowie 3. keine Geometrie übergeben. Das Limit für die Rekursion wird auf die Anzahl der vorhandenen Multipolygone gesetzt. Die Abfrage der durch Rekursion erstellten Tabelle "liste" wird per *join* mit den Eingangsdaten verbunden um nachträglich Dateiname und Layer zu erhalten. Zugleich wird das einfache Polygon wieder zu einem Multipolygon für die weitere Bearbeitung umgewandelt und auf die Zeilen mit Geometrie gefiltert. Die knapp 14400 Polygone werden in weniger als 3 Sekunden verarbeitet.
+Diese Rekursive Abfrage ist mit den eingefügten Bedingungen (*case*) etwas umfangreicher aber nicht wirklich kompliziert. Die Grundkonstruktion der durch Rekursion gebauten Tabelle ("liste") hat drei Spalten für zwei Zähler ("fid", "n") und eine Geometrie ("single"). Die Tabelle liste startet mit dem Setzen der Zähler, wobei "fid" = 1 und "n" = 0 gesetzt wird. Für alle weiteren Datenzeilen wird per *select*-Anweisung geprüft, ob im Multipolygon der gegebenen "fid" das "n"+1 Polygon existiert. Ist dies vorhanden wird in den drei Bedingungen: 1. die "fid" behalten, 2: "n" + 1 gesetzt und 3. das zugehörige Polygon abgefragt. Alternativ wird für das nächste Multipolygon: 1. "fid" + 1 und 2. "n" zurück auf 0 gesetzt sowie 3. keine Geometrie übergeben. Das Limit für die Rekursion wird auf die Anzahl der vorhandenen Multipolygone gesetzt. Die Abfrage der durch Rekursion erstellten Tabelle "liste" wird per *join* mit den Eingangsdaten verbunden um nachträglich Dateiname und Layer zu erhalten. Zugleich wird das einfache Polygon wieder zu einem Multipolygon für die weitere Bearbeitung umgewandelt und auf die Zeilen mit Geometrie gefiltert. Die knapp 14400 Polygone werden in weniger als 3 Sekunden verarbeitet.
 
 Danach erfolgt das Prüfen, das Wiederherstellen und ggf. die Korrektur der Geometriespalte. 
 
 ```{sql 'Tabelle individuelle Polygone prüfen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
-FROM "tmp_polygonize_single"
-GROUP BY 2, 3, 4;
+Select Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+from "tmp_polygonize_single"
+group by 2, 3, 4;
 
 Select RecoverGeometryColumn('tmp_polygonize_single', 'geometry', -1, 'MULTIPOLYGON', 'XY');
 
@@ -458,9 +459,9 @@ Drop table if exists tmp_polygonize_single;
 
 Wenn gewünscht noch die verarbeitetn Linien aus line_layer_2d löschen, dies erfolgt in zwei Schritten: 1. Wird eine Sicht (*view*) der verarbeiteten ID's mittels Rekursion erstellt und 2. dann mit dieser entsprechenden Einträge in der Tabelle der Linien gelöscht. Eine Ursache dafür ist das in "tmp_Polygonize" als ein langer Text und nicht als Liste von Zahlen abgelegte Ergebnis der vorangehenden *group_concat*-Anweisung.  Die Rekursion arbeitet erneut mit einer *case*-Anweisung, um jeweils das erste Element bis zum ersten "," und den Rest zu trennen. In der abschließenden Abfrage wird noch auf die Elemente ("feature_id") gruppiert, um die doppelten zu eliminieren.
 
-```{sql 'Tabelle der zu löschenden feature_id's.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+```{sql 'Tabelle der zu löschenden feature_id.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Einspaltige Tabelle der feature_ids
-create view tmp_delfids as
+Create view tmp_delfids as
 with recursive liste (element, remainder) as (
  select 0 as element, (select group_concat(fids) from tmp_Polygonize) as remainder
   union all
@@ -480,17 +481,17 @@ with recursive liste (element, remainder) as (
 from liste
 where remainder is not null
 )
-select trim(element) as fid from liste where element is not null group by 1;  
+Select trim(element) as fid from liste where element is not null group by 1;  
 ```
 
 Auf diese zuvor erstellen Sicht der ID's bezieht sich dann die folgende *delete*-Anweisung. Diese führe ich jetzt aber nicht aus, um die Einzelfallprüfung noch durchzuführen.
 
 ```{sql 'Verarbeitete Linien löschen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
-delete from cp_line_layer_2d
+Delete from cp_line_layer_2d
 where feature_id in (select fid from tmp_delfids);
 ```
 
-### Polygone aus Einzelfallprüfung 
+### Polygone aus problemorientierter Lösung 
 
 Ein Problem sind die in AutoCAD nicht geschlossen Polygone bei denen Startpunkt und Endpunkt identische Werte haben. Dies ist durch eine *insert*-Anweisung einfach zu lösen. Danach sollte der Index von polyg_layer_2d aktualisiert und die ursprünglichen Linien gelöscht werden. 
 
@@ -515,103 +516,48 @@ where StartPoint("geometry") = EndPoint("geometry")
 
 Bei den verbleibenden Linien sind noch sehr viele auf den Layern STEINE und KNOCHEN. Um deren Struktur zu prüfen können einige Abfragen ausgeführt werden:
 
-```{sql '', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+```{sql 'Weitere Linien prüfen', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
 -- Anzahl der optionlen Linien mit mehr als 2 Knoten feststellen. 
 SELECT Count(*), layer from line_layer_2d
 where numpoints("geometry") > 2 
  and layer in ('KNOCHEN', 'STEINE')
 group by 2;
 -- Wie viele würden, direkt geschlossen, ein valides Polygon ergeben?
-SELECT Count(*), layer 
+SELECT Count(*), layer, isvalid(ST_BuildArea("geometry")) 
 from line_layer_2d
 where numpoints("geometry") > 2 
  and layer in ('KNOCHEN', 'STEINE')
- and isvalid(ST_BuildArea("geometry")) = 1
-group by 2;
+group by 2, 3;
 ```
 
+Nach einer visuellen Prüfung liegen nicht nur ideale Polylinien vor, bei denen lediglich eine Kante wegen eines benachbarten Polygons fehlt, vielmehr sind die Strukturen deutlich komplexer. Dennoch als Beispiel hier eine mögliche Konstruktion weiterer Polygone durch das Anfügen des Starpunktes als Endpunkt. 
 
-
-inien 
-Folgendes durch st_buildarea()
-```
-Select 'POLYGON(' || substr(astext("geometry"),11)||')'
+```{sql 'Startpunkt als Endpunkt für Polygon ergänzen und Polygon erstellen.', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+Create table tmp_line2polyg as
+select feature_id, filename, layer, 
+ CastToMulti(ST_BuildArea(ST_AddPoint(geometry, ST_StartPoint(geometry)))) as geometry 
 from line_layer_2d
-where "feature_id" = 28
+where numpoints(geometry) > 2 
+ and layer in ('KNOCHEN', 'STEINE');
+
+Delete from tmp_line2polyg where geometry is null;
+
+Select Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
+from "tmp_line2polyg"
+group by 2, 3, 4;
+
+Select RecoverGeometryColumn('tmp_line2polyg', 'geometry', -1, 'MULTIPOLYGON', 'XY');
+
+Select count(*) , ST_IsValid(geometry), ST_SelfIntersections(geometry) from tmp_line2polyg
+group by 2, 3;
 ```
 
-```
-INSERT INTO  "polyg_layer_2d" ("filename", "layer", geometry)
-Select "filename", "layer", 
- ST_GeomFromText('POLYGON(' || substr(astext("geometry"),11)||')
-', -1)
-from line_layer_2d
-where StartPoint("geometry") = EndPoint("geometry")
+Viele weitere Linien mit nur zwei Punkten sind maximal 13 cm lang oder haben mit drei Punkten eine Länge bis 18 cm. Eine qualifizierte Entscheidung ist hier nicht wirklich zu treffen. 
 
-SELECT UpdateLayerStatistics("polyg_layer_2d", "geometry")
+### Fazit Linie zu Polygon
 
-DELETE from line_layer_2d
-where StartPoint("geometry") = EndPoint("geometry")
-SELECT UpdateLayerStatistics("line_layer_2d", "geometry")
-```
-Kontrolle der verbleibenden Linien
+Vergleichen wir am Ende die "Erfolgszahlen" schneidet die "pauschale" Methode mit 21.200 verarbeiteten Linien deutlich besser ab als die problemorientierte Lösung mit 14.300 verarbeiteten Linien. Natürlich ist der vorliegende Fall von den Ausgangsdaten eher für die pauschale Version geeignet. Bei den Befunden einer Flächengrabung ist möglicherweise die zweite eher geeignet, ein Ergebnis entsprechend der ursprünglichen Dokumentation zu liefern. Viel hängt auch von der Datenqualität, also der genuinen Strukturierung und Umsetzung der ursprünglichen CAD-Daten ab. 
 
-```
-select count("feature_id"), layer 
-from line_layer_2d
-group by 2
-```
-
-Befunde, Grabungsgrenze und Profile hier erstmal ignorieren, Ziel ist räumliche Statistik. Deshalb für Knochen und Steine möglichst viele Polygone schaffen:
-```
-select "feature_id", numpoints("geometry"), st_length("geometry")
-from line_layer_2d
-where layer = 'KNOCHEN'
-order by 2, 3
-```
-Viele Linien mit nur 2 Punkten, maximal 13 cm lang und drei Punkten bis 18 cm lang. Visuelle Kontrolle der Objekte zeigt vielfach an einer kurzen Kante offene Objekte, die einfach geschlossen werden kann. Dazu oft auch langgestreckte Objekte, die nicht geschlossen werden können, da z.B. eine Überschneidung in sich erfolgen würde.
-
-```
-create table polyg_tmp as 
-select "feature_id", "filename", layer,
-st_GeomFromText('POLYGON(' || substr(astext("geometry"),11,length(astext("geometry"))-11)
- || ', ' || substr(astext(StartPoint("geometry")), 7) || ')', -1) as geometry
-from line_layer_2d;
-```
-
-```
--- recover geometry column
--- prüfen der Geometrie
-begin transaction;
-SELECT Count(*), GeometryType("geometry"), Srid("geometry"), CoordDimension("geometry")
-FROM "polyg_tmp"
-GROUP BY 2, 3, 4;
--- indexliste für später erstellen
-create temp table polyg_null_tmp as
-SELECT "feature_id"
-FROM polyg_tmp
-where geometry is null;
--- nuller löschen
-DELETE FROM polyg_tmp
-where geometry is null;
--- alles löschen, was nicht knochen oder Stein ist
-DELETE FROM polyg_tmp
-where layer not in ('KNOCHEN', 'STEINE');
-commit
-
-create temp table poly_invalidgeom_tmp as
-select "feature_id"
-from polyg_tmp
-where isvalid("geometry") = 0;
-
-delete from polyg_tmp
-where isvalid("geometry") = 0;
-```
-Sichtkontrolle zeigt weiterhin einige seltsame, sehr langschmale Objekte.
-
-
-
-Liefert am Ende erfolgreiche und fehlerhafte Geometrien. -> visuelle Kontrolle
-
+Je effizienter einzelne Lösungswege umgesetzt werden können desdo vielfältiger sind die möglichen Lösungen und umso größer ist auch die Bereitschaft, Ergebnisse auch zu verwerfen. Zudem bieten die aufgezeigten Skripte die Möglichkeit, kleinen Variationen einzubauen.  Hier liegt der große Vorteil der Automatisierung gegenüber der qualitativ hochwertigen aber langwierigen Einzelfallprüfung und Handarbeit. 
 
 # Literatur
