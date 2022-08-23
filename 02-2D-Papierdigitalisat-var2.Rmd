@@ -151,7 +151,7 @@ from hatch_layer_2d
 group by 1, 2
 ```
 
-Die Syntax aggregiert auf die erste und zweite Spalte, den Layernamen und die Abfrage des Geometrietyps. Dazu liefert sie die Anzahl der Einträge. Warum einige Geometrien nicht vorliegen (NULL) kann ich nicht sagen. Im vorliegenden Fall handelt es sich durchgängig um eine Kreuzschaffur (ANSI37) für Tiergänge oder andere Störungen. 
+Die Syntax gruppiert auf die erste und zweite Spalte, den Layernamen und die Abfrage des Geometrietyps, dazu liefert sie die Anzahl der Einträge. Warum einige Geometrien nicht vorliegen (NULL) kann ich nicht sagen. Im vorliegenden Fall handelt es sich durchgängig um eine Kreuzschaffur (ANSI37) für Tiergänge oder andere Störungen. 
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 select layer, GeometryType(geometry) as geomtype, Count(*) as n 
@@ -159,7 +159,7 @@ from line_layer_2d
 group by 1, 2
 ```
 
-Diese Abfrage liefert im vorliegenden Fall zwei Problemgruppen: Pl01_Steine hat elf und PL02_Befunde hat zwei Linienobjekte. In allen Fällen sollten das Polygone sein. Die Korrektur erfogt am besten in CAD: beim Layer Steine ist es ein Stein der aus zehn einzelnen Linien besteht und beim Layer Befunde sind es zwei nicht geschlossene Befunde. Die Grabungsgrenzen sind im vorliegenden Fall  aufgrund der Vorgaben heterogen sowohl als Polygon als auch als Linie vorhanden. Hier ist die jeweilige Fragestellung relevant: z.B. Fläche bemessen oder 1:1-Abbildung des Papiers.
+Diese Abfrage liefert im vorliegenden Fall zwei Problemgruppen: Pl01_Steine hat elf und PL02_Befunde hat zwei Linienobjekte. In allen Fällen sollten das aber Polygone sein. Die Korrektur erfogt am besten in CAD: beim Layer Steine ist es ein Stein der aus zehn einzelnen Linien besteht und beim Layer Befunde sind es zwei nicht geschlossene Befunde. Die Grabungsgrenzen sind im vorliegenden Fall  aufgrund der Vorgaben heterogen sowohl als Polygon als auch als Linie vorhanden. Hier ist die jeweilige Fragestellung relevant: z.B. Fläche bemessen oder 1:1-Abbildung des Papiers.
 
 Die Tabelle text_layer_3d_attr und die Sicht (*view*) text_layer_3d_attr_view liefern in diesem Fall keine erhellenden Informationen und können wie hatch_layer_2d gelöscht werden.
 
@@ -175,13 +175,13 @@ where a.layer = 'PL01_Befund'
   and b.layer = 'PL01_BefundNr';
 ```
 
-Wird der vorangehenden Abfrage ein ```create table as Pl01_BefundeNr``` vorangestellt wird die entsprechende Tabelle erstellt. Nach einem *refresh* der Datenbank ist diese Tabelle sichtbar. Die Angaben zur dort enthaltene Geometrie kann erst mit 'Check geometries' aus dem Kontextmenü überprüft und dann mit 'Recover gemetrie column' wieder hergestellt werden. Vergleichbare Vorgänge für jede Informationseinheit wiederholen.
+Wird der vorangehenden Abfrage ein ```create table as Pl01_BefundeNr``` vorangestellt wird die entsprechende Tabelle erstellt. Nach einem *refresh* der Datenbank ist diese Tabelle sichtbar. Die Angaben zur dort enthaltene Geometrie kann erst mit 'Check geometries' aus dem Kontextmenü überprüft und dann mit 'Recover gemetry column' wieder hergestellt werden. Vergleichbare Vorgänge für jede Informationseinheit wiederholen.
 
 Das ist die arbeitsreiche und in der Datenhaltung schwierigere Variante wegen der zunehmend vielen Tabellen. Das ist nicht zu empfehlen. Der eigentliche Vorteil: der Lernaufwand liegt nahe NULL.
 
 ### Variante: Zwei wichtige Tabellen
 
-Bei dieser Variante wird die Tabelle 'polyg_layer_2d' um zwei sinnvolle Spalten für wichtige Informationen erweitern: (Befund-)Nummer und Info. Ebenso für 'line_layer_2d'. Dabei gilt: unbedingt die folgenden Updates bei exklusivem Zugriff von SpatiaLite ausführen und nachfolgend im Kontextmenü der Geometriespalte 'Update Layer Statistics' aufrufen.
+Bei dieser Variante wird die Tabelle 'polyg_layer_2d' um zwei sinnvolle Spalten für wichtige Informationen erweitern: (Befund-)Nummer und Info. Ebenso auch 'line_layer_2d'. Dabei gilt: unbedingt die folgenden Updates bei exklusivem Zugriff von SpatiaLite ausführen und nachfolgend im Kontextmenü der Geometriespalte 'Update Layer Statistics' aufrufen.
 
 Anmerkung: SQLite hat *type affinity*, trivialisierte Info: in einem Feld vom Typ *integer* kann auch '8820A' gespeichert werden.
 
@@ -196,7 +196,7 @@ Select UpdateLayerStatistics();
 
 #### Befundnummern
 
-Nun die Befundnummer mittels *spatial join* nachgeschlagen und in dem Feld 'number' eingeragen.
+Nun die Befundnummer mittels *spatial join* nachschlagen und in dem Feld 'number' eintragen.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 Update polyg_layer_2d as c
@@ -222,7 +222,7 @@ where a.layer = 'PL01_Befund'
 where c.number is null;
 ```
 
-Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten,  kontrollieren und die Probleme von Hand analog der folgenden Anweisung  bereinigen. Die "Massenzuweisung" sind überwiegend die vielen einzelnen Befunde der tiefern Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID's könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Dies sind individuelle und situativ zu treffende Entscheidungen.
+Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten, kontrollieren und die Probleme von Hand analog der folgenden Anweisung  bereinigen. Die "Massenzuweisung" sind überwiegend die vielen einzelnen Befunde der tiefern Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID's könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Dies sind individuelle und situativ zu treffende Entscheidungen.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 Update polyg_layer_2d
