@@ -4,17 +4,17 @@ author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 always_allow_html: true
 output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -35,6 +35,10 @@ description: Handreichung zur Nachnutzung von CAD-Digitalisaten einer auf Papier
 # Vorwort {-}
 
 Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist die  Retrodigitalisierung (2D) einer Papierdokumentation einer über vier Jahre erfolgten Ausgrabung des Kollektivgrabes Odagsen 1, Stadt Einbeck, Ldkr. Northeim. Hierbei geht es nicht um einen schönen, interaktiven Plan in einem GIS am Ende, sondern um die Nachnutzung möglichst vieler Daten für eine räumliche Statistik.
+
+Dieser erste Fall besteht aus vielen DWG-Dateien mit spezifischen, aber sehr weit verbreitete Problemen, u.a. zur falsch deklarierten Einheit in AutoCAD. Die zweite Variante der 2D-Retrodigitalisierung besteht aus einer sehr umfangreichen Datei einschließlich zahlreicher Blöcke mit Attributen, u.a. für Funde und Niv-Werte.
+
+Der dritte Fall ist eine AutoCAD-Datei mit 3D-Objekten, die mit eine Tachymeter und der Software TachyCAD direkt in AutoCAD dokumentiert wurde. 
 
 **Anmerkungen** 
 
@@ -61,7 +65,7 @@ library(RSQLite)
 od1db<-dbConnect(RSQLite::SQLite(), dbname = "./data/Odagsen1.sqlite")
 ```
 
-```{sql 'basic drop table', connection=od1db, eval=FALSE, message=FALSE, include=TRUE}
+```{sql 'basic drop table', connection=od1db, eval=FALSE, message=FALSE, include=FALSE}
 Drop table if exists block_line_2d;
 Drop table if exists insline_layer_2d;
 Drop view if exists insline_layer_2d_view;
@@ -90,6 +94,48 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
  - BricsCAD [https://www.bricsys.com]
  - MegaCAD [https://www.megacad.de/]
+
+## Layer als getrennte DXF-Dateien 
+
+Alle GIS trennen nach Punkt, Linie und Polygon. Die in AutoCAD sehr wichtige inhaltliche Trennung in diverse Layer wird in einem GIS beim Import in der Regel nur in einer Attributspalte wiedergegeben. Es mag für die Archivierung als auch die Nachnutzung von CAD-Dateien sinnvoll sein, jeden Layer in eine eigene DXF-Datei zu exportieren. So werden kleinere Einheiten geschaffen und eventuell vorhandene Fehler ggf. eingegrenzt.
+
+Statt Handarbeit empfiehlt sich auch hierfür eine Programmierung, bei AutoCAD in LISP:
+
+```{bash 'LISP-Script für den Export einzelner Layer.', eval=FALSE, include=TRUE}
+; Create list of layer names.
+; The (not lyr) excludes the current lyr and the next layer is selected
+(setq lyrlst nil)
+(while (setq lyr (tblnext "layer" (not lyr)))
+  (setq lyrlst (cons (cdr (assoc 2 lyr)) lyrlst))
+)
+
+; Select all elements of the lyer and save it to dxf
+(foreach lyr lyrlst
+  (progn
+    (setq ss (ssget "X" (list (cons 8 lyr))))
+    (if (> (sslength ss) 0)
+      (progn
+        ;switch layer on, thaw and unlock to export and see something when loaded
+	      (command "-layer" "_on" lyr "_thaw" lyr "_unlock" lyr "")
+        ;concatenate current path, filename, "_", layername and extension
+	      (setq pathfile (strcat
+			    (getvar "dwgprefix")
+			    (substr (getvar "dwgname") 1 (- (strlen (getvar "dwgname")) 4))
+			    "_" lyr
+			    ".dxf"
+			    );end strcat
+	      );end setq
+	      ;export selected features as dxf
+	      (command "-wblock" pathfile "" "" "0,0" ss "")
+      );end progn
+    );end if
+  );end progn
+);end for
+```
+
+Das ist eine einfache und ausreichend kommentierte Funktion, also einfach per *copy 'n paste* in den LISP-Editor kopieren und dort ausführen. Den LISP-Editor finden Sie in AutoCAD unter "Extras > AutoLISP > Visual LISP Editor". Mit \<Ctrl> + \<n> öffnen Sie eine neue Datei, fügen den Code dort ein und wählen dann das Icon mit dem roten Pfeil nach unten ("Aktives Bearbeitungsfenster laden"). Der Export erfolgt in das Verzeichnis der aktiven Zeichnung.
+
+Für den Export wird der Befehl ```wblock``` verwendet, da dieser die selektierten Objekte exportiert. Damit lässt sich leider keine Entscheidung über die DXF-Version treffen. Eine Möglichkeit ist das pauschale Ändern des Speicherformates in den Optionen: "Extras > Optionen" Register "Öffnen und Speichern". Der alternative Befehl ```dxfout``` ist keine echte Alternative, da dieser stets den gesammten Dateinhalt exportiert.
 
 ## Originaldaten
 
