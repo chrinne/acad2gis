@@ -2,6 +2,8 @@
 
 Handreichung mit Erfahrungen zum Transfer von CAD-Projekten in AutoCAD zu GIS Projekten. Ausgangspunkt sind Dateien von archäologischen Ausgrabungen (2D, 3D), das Ziel ist SpatiaLite. 
 
+Work in progess.
+
 Kiel Universioty GitLab repo push mirrored to the public github repo.
 
 ## Einleitung
