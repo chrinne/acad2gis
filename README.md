@@ -2,6 +2,8 @@
 
 Handreichung mit Erfahrungen zum Transfer von CAD-Projekten in AutoCAD zu GIS Projekten. Ausgangspunkt sind Dateien von archäologischen Ausgrabungen (2D, 3D), das Ziel ist SpatiaLite. 
 
+Kiel Universioty GitLab repo push mirrored to the public github repo.
+
 ## Einleitung
 
 CAD-Software dient der 3D-Konstruktion, es ist meist eine hoch komplexe, professionelle und kostspielige Software. Der Einsatz in der Archäologie geht wesentlich auf den Einsatz von Tachymetern auf archäologischen Ausgrabungen seit den 1980er Jahren zurück. Damit liegen in vielen Denkmalämtern seit 40 Jahren akkumuliert Plandokumentationen in diesem digitalen Format vor. Der Mehrwert digitaler Format gegenüber den ggf. vorhandenen Papierplänen ist unstrittig. 
