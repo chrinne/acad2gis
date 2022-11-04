@@ -4,17 +4,17 @@ author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 always_allow_html: true
 output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -178,11 +178,11 @@ REM Command to start ACAD with the script to convert all DWG files to DXF
 "c:\Program Files\Autodesk\AutoCAD 2014\acad.exe" /b od_convert_dwg2dxf.scr
 ```
 
-Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer **Leerzeile enden**. Sollten Sie in der DWG Änderungen vornehmen (s.u.) und wollen diese auch speichern ergänzen Sie die den Befehl "*\_qsave*". 
+Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer **Leerzeile enden**. Sollten Sie in der DWG Änderungen vornehmen (s.u.) und wollen diese auch speichern ergänzen Sie eine Zeile mit dem Befehl "*\_qsave*" vor der Anweisung "*\_close*". Anders als bei "DWG" kann hier bei "DXF" keine AutoCAD-Version angegeben werden.   
 
 ```{bash 'Skript zur Konvertierung.', eval=FALSE, include=TRUE}
 ;; Script file for AutoCAD
-;; Start AutoCAD on the command line with option: /b script-file.scr"
+;; Start AutoCAD on the command line with option: /b <script-file>.scr"
 _open
 ODS1P101.DWG
 _saveas
@@ -195,6 +195,9 @@ ODS1P102.DWG
 ...
 <blank line>
 ```
+Das obige Skript speichert unter der Version, die in unter "Extras > Optionen" in AutoCAD vorgegeben ist. Wenn Sie den Befehl "_saveas" mal von Hand durchspielen möchten und die jeweiligen Vorgaben des Systems sehen und ggf. nutzen wollen geben Sie in der Kommandozeile von AutoCAD folgendes ein: ```(command "_saveas")```. Damit wird der Befehl in der Kommandoizeile durchgeführt und in "\<>" steht die jeweilige Vorgabe des benötigten Parameters den Sie einfach mit \<Enter> bestätigen können. Dieses "Enter" wird im Skript einfach mit einer Leerzeile übernommen. Das bedeutet wenn Sie die automatische Speicherung in ACAD gesetzt haben kommen nach "*\_saveas*" drei leere Zeilen und die Datei steht mit dem Originalnamen jedoch mit .dxf im ursprünglichen Verzeichnis.
+
+## 
 
 ## Einheiten
 
