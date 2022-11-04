@@ -4,17 +4,17 @@ author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 always_allow_html: true
 output:
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -103,21 +103,23 @@ Statt Handarbeit empfiehlt sich auch hierfür eine Programmierung, bei AutoCAD i
 
 ```{bash 'LISP-Script für den Export einzelner Layer.', eval=FALSE, include=TRUE}
 ; Create list of layer names.
-; The (not lyr) excludes the current lyr and the next layer is selected
+; The (not lyr) excludes the current lyr so the next layer is selected
 (setq lyrlst nil)
 (while (setq lyr (tblnext "layer" (not lyr)))
+  ;the keyword for more informations related to the next is "dotted pairs"
   (setq lyrlst (cons (cdr (assoc 2 lyr)) lyrlst))
 )
 
 ; Select all elements of the lyer and save it to dxf
 (foreach lyr lyrlst
-  (progn
-    (setq ss (ssget "X" (list (cons 8 lyr))))
+  (progn ; allows more than one command in the for loop
+    ;switch layer on, thaw and unlock to see and export something when loaded
+	  (command "-layer" "_on" lyr "_thaw" lyr "_unlock" lyr "")
+	  ;select everything from the selected layer
+    (setq ss (ssget "X" (list (cons 8 lyr)))) 
     (if (> (sslength ss) 0)
       (progn
-        ;switch layer on, thaw and unlock to export and see something when loaded
-	      (command "-layer" "_on" lyr "_thaw" lyr "_unlock" lyr "")
-        ;concatenate current path, filename, "_", layername and extension
+        ;concatenate current file path, filename, "_", layername and extension
 	      (setq pathfile (strcat
 			    (getvar "dwgprefix")
 			    (substr (getvar "dwgname") 1 (- (strlen (getvar "dwgname")) 4))
@@ -231,7 +233,7 @@ Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überf�
 <blank line>
 ```
 
-Da dies nicht ganz selbsterklärend ist, eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei "x" die Objekte zu, die der folgende Liste an Parametern entsprechen (*dotted pairs*, d.h. Attributkennziffer . Wert). Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt, wobei der jeweilige Objektname anhand des Zählers ermittelt wird. 
+Da dies nicht ganz selbsterklärend ist, eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei mit "x" alle Objekte zu, die der folgende Liste an Parametern entsprechen (*dotted pairs*, d.h. Attributkennziffer . Wert). Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt, wobei der jeweilige Objektname anhand des Zählers ermittelt wird. 
 
 ## Datenextraktion
 
