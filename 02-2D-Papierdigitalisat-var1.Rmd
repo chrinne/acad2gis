@@ -46,7 +46,7 @@ Der dritte Fall ist eine AutoCAD-Datei mit 3D-Objekten, die mit eine Tachymeter 
  - Tastaturkürzel, die ich gerne Nutze, stehen in Spitzklammern je Taste: \<strg> + \<c>. 
  - Schalter auf Formularen werden in [] gesetzt: [OK] 
  - Zur Darstellung von Befehlen im Text nutze ich die in Markdown übliche Darstellung von Code oder eben Anweisungen an den Computer: ```anweisung```. 
- - SQL-Anweisungen sind nicht in Großbuchstaben gesetzt, die farbliche Gestaltung macht dies überflüssig. Eine Ausnahme bilden die verwendeten Funktion bei denen der *CamelCase* für die bessere Lesbarkeit beibehalten wird. Auch wird der Anfang einer  Anweisungen jeweils groß geschrieben, um aufeinander folgende Anweisungen etwas besser zu trennen. Im vorliegenden Fall wurden Leerzeichen in Objektnamen vermieden, dadurch müssen Tabellen und Feldnamen nicht in "" stehen.
+ - SQL-Anweisungen sind nicht in Großbuchstaben gesetzt, dank der farblichen Gestaltung ist dies überflüssig. Eine Ausnahme bilden die verwendeten Funktion, bei denen der *CamelCase* für die bessere Lesbarkeit beibehalten wird. Auch wird der Anfang einer  Anweisungen jeweils groß geschrieben, um aufeinander folgende Anweisungen etwas besser zu trennen. Im vorliegenden Fall wurden Leerzeichen in Objektnamen vermieden, dadurch müssen Tabellen und Feldnamen nicht in "" stehen.
  - Der Text enthält viele Links die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck. 
 
 ```{r knitr global options, include=FALSE}
@@ -88,9 +88,9 @@ Drop table if exists text_layer_2d;
 
 AutoCAD ist eine sehr komplexe Software und Ausgrabungen können eine komplexe Struktur annehem, die es zu dokumentieren gilt. Erwarten Sie nicht, dass die notwendige Kompetenz beim Erstellen der digitalen Daten stets vorhanden war, auch der Autor (Chr. Rinne) ist hier nur Autodidakt. 
 
-Rechnen Sie mit Fehlern im originalen Datenbestand und einer ggf. nicht optimalen Struktur oder erwarten Sie nicht die von Ihnen bevorzugte Struktur. Korrektur von Fehler und Anpassungen der Struktur erfolgen sicher am besten im originalen Arbeitsumfeld, also CAD.
+Rechnen Sie mit Fehlern im originalen Datenbestand und einer ggf. nicht optimalen Struktur oder erwarten Sie nicht die von Ihnen bevorzugte Struktur. Korrektur von Fehlern und Anpassungen der Struktur erfolgen sicher am besten im originalen Arbeitsumfeld, also CAD.
 
-Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
+Neben AutoCAD gibt es teils kostengünstigere Alternativen die DWG-Dateien ebenfalls lesen können, u.a.:
 
  - BricsCAD [https://www.bricsys.com]
  - MegaCAD [https://www.megacad.de/]
@@ -106,7 +106,7 @@ Statt Handarbeit empfiehlt sich auch hierfür eine Programmierung, bei AutoCAD i
 ; The (not lyr) excludes the current lyr so the next layer is selected
 (setq lyrlst nil)
 (while (setq lyr (tblnext "layer" (not lyr)))
-  ;the keyword for more informations related to the next is "dotted pairs"
+  ;the keyword for more informations related to the following command is "dotted pairs"
   (setq lyrlst (cons (cdr (assoc 2 lyr)) lyrlst))
 )
 
@@ -137,17 +137,17 @@ Statt Handarbeit empfiehlt sich auch hierfür eine Programmierung, bei AutoCAD i
 
 Das ist eine einfache und ausreichend kommentierte Funktion, also einfach per *copy 'n paste* in den LISP-Editor kopieren und dort ausführen. Den LISP-Editor finden Sie in AutoCAD unter "Extras > AutoLISP > Visual LISP Editor". Mit \<Ctrl> + \<n> öffnen Sie eine neue Datei, fügen den Code dort ein und wählen dann das Icon mit dem roten Pfeil nach unten ("Aktives Bearbeitungsfenster laden"). Der Export erfolgt in das Verzeichnis der aktiven Zeichnung.
 
-Für den Export wird der Befehl ```wblock``` verwendet, da dieser die selektierten Objekte exportiert. Damit lässt sich leider keine Entscheidung über die DXF-Version treffen. Eine Möglichkeit ist das pauschale Ändern des Speicherformates in den Optionen: "Extras > Optionen" Register "Öffnen und Speichern". Der alternative Befehl ```dxfout``` ist keine echte Alternative, da dieser stets den gesammten Dateinhalt exportiert.
+Für den Export wird der Befehl ```wblock``` verwendet, da dieser die selektierten Objekte exportiert. Damit lässt sich leider keine Entscheidung über die DXF-Version treffen. Eine Möglichkeit ist das pauschale Ändern des Speicherformates in den Optionen: "Extras > Optionen" Register "Öffnen und Speichern". Der alternative Befehl ```dxfout``` ist keine echte Alternative, da dieser stets den gesamten Dateiinhalt exportiert.
 
 ## Originaldaten
 
 ### Ausgrabung
 
-Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kollektivgrabes [Ogasen I](https://www.jna.uni-kiel.de/index.php/jna/issue/view/23), Stadt Einbeck, Ldkr. Northeim in Niedersachsen. Die Ausgrabung erfolgte in vier Kampagnen von 1981 bis 1984 als Forschungs- und Lehrgrabung des Institutes für Ur- und Frühgeschichte der Georg-August-Universität in Niedersachsen (@rinneOdagsenUndGrossenrode2003a; @heegeHauserTotenJungsteinzeitliche1989). In diesen Kampagnen  wurden zahlreiche Schnitte und eine wechselnde Anzahl von Plana angelegt als auch die dazwischen ursprünglich belassenen Profilstege sukzsessive abgebaut und auf insgesamt 154, meist einzelnen und neu gerichteten Din A3-Blättern im M 1:20 dokumentiert. Zu den jeweiligen Planblättern wurden Überlieger auf Transparentpapier mit Nivellierwerte und weiteren Angaben angefertigt. Die Einmessung erfolgte mit Theodolit, Nivelliergerät und Maßband.
+Die Daten stammen von der Ausgrabung und Auswertung des spätneolithischen Kollektivgrabes [Ogasen I](https://www.jna.uni-kiel.de/index.php/jna/issue/view/23), Stadt Einbeck, Ldkr. Northeim in Niedersachsen. Die Ausgrabung erfolgte in vier Kampagnen von 1981 bis 1984 als Forschungs- und Lehrgrabung des Institutes für Ur- und Frühgeschichte der Georg-August-Universität in Niedersachsen (@rinneOdagsenUndGrossenrode2003a; @heegeHauserTotenJungsteinzeitliche1989). In diesen Kampagnen  wurden zahlreiche Schnitte und eine wechselnde Anzahl von Plana angelegt als auch die dazwischen ursprünglich belassenen Profilstege sukzessive abgebaut und auf insgesamt 154, meist einzelnen und neu gerichteten Din A3-Blättern im M 1:20 dokumentiert. Zu den jeweiligen Planblättern wurden Überlieger auf Transparentpapier mit Nivellierwerte und weiteren Angaben angefertigt. Die Einmessung erfolgte mit Theodolit, Nivelliergerät und Maßband.
 
 ### Digitalisierung in AutoCAD
 
-Die die Digitalisierung der Planzeichnungen erfolgte im Mai und Juni 1997 in AutoCAD Ver. 12 (DOS) und Ver. 13 (Windows 3.1) auf einem Din-A3-Grafiktablett und mit Referenzierung anhand der Koordinatenangaben auf den Blättern. Jede Datei erhielt eine stringent vergeben Namen ODS(chnitt)<SchnittNr> P(lanum)<Planumnummer des Blattes> <fortlaufender Zähler>, z.B. ODS1P102. Für jedes Blatt wurde die Planumsangabe der Zeichnung,  die Planumsangabe mit Bezug auf die Angabe der Ausgräberin, die Bearbeitungszeit, die mittlere Angabe der Nivellierwerte  zum Fixpunkt der Oberfläche erfasst. Ergänzt wurden nachträglich die gängigen Metadaten der resultierenden Dateien.
+Die Digitalisierung der Planzeichnungen erfolgte im Mai und Juni 1997 in AutoCAD Ver. 12 (DOS) und Ver. 13 (Windows 3.1) auf einem Din-A3-Grafiktablett und mit Referenzierung anhand der Koordinatenangaben auf den Blättern. Jede Datei erhielt einen stringent vergeben Namen ODS(chnitt)<SchnittNr> P(lanum)<Planumnummer des Blattes> <fortlaufender Zähler>, z.B. ODS1P102. Für jedes Blatt wurde die Planumsangabe der Zeichnung,  die Planumsangabe mit Bezug auf die Angabe der Ausgräberin, die Bearbeitungszeit und der Mittelwert der angegebenen Nivellierwerte  zum Fixpunkt an der Oberfläche erfasst. Ergänzt wurden nachträglich die gängigen Metadaten der resultierenden Dateien.
 
 ```{r 'Table 1 List of drawings and DWG files.', echo=FALSE}
 tab01<-read.table("./data-raw/od_files.txt", header = TRUE, sep = "\t", dec = ",")
@@ -161,7 +161,7 @@ if (knitr::is_html_output()) {
 }
 ```
 
-Die Dateien sind einfach strukturiert. Folgende Layer wurden für Informationseinheiten verwendet: BEFUND, BEFUND_UNSICHER, BEFUNDSCHRAFF, FEUER, GRABUNGSGRENZE, GRENZE, KNOCHEN, KNOCHENSCHRAFF, STEINE, STEINESCHRAFF, TPROFIL. Alle Linien wurden als 2D-Polygone digitalisiert, allerdings wurden die Polygone nicht geschlossen, sondern bei der oft dichten Lage von Steinen und Knochen nur sauber an den gemeinsamen Punkten gefangen. 
+Die Dateien sind einfach strukturiert. Folgende Layer wurden für Informationseinheiten verwendet: BEFUND, BEFUND_UNSICHER, BEFUNDSCHRAFF, FEUER, GRABUNGSGRENZE, GRENZE, KNOCHEN, KNOCHENSCHRAFF, STEINE, STEINESCHRAFF, TPROFIL. Alle Linien wurden als 2D-Polygone digitalisiert, allerdings wurden die Polygone wahlweise geschlossen oder wegen der oft dichten Lage von Steinen und Knochen  sauber an den gemeinsamen Knoten gefangen. 
 
 Als Störungen klassifizierte Befunde haben eine horizontale Linienschraffur, Sandsteine erhielten eine Punktschraffur und gebrannte Steine eine diagonale Schraffur auf dem Layer "FEUER", um diese Information zu vermitteln. Knochen wurden ausschließlich für den optischen Effekt stets schraffiert. Die Schraffuren wurden nicht je Objekt, sondern meist für zahlreiche Objekte angelegt, wodurch diese Schraffuren als ein Objekt über mehrere Steine oder Knochen laufen und der Mittelpunkt dieser Schraffur räumlich nicht mit einem Objekt zusammenhängt. Dies trifft vor allem auf Knochen zu, bei den eher singulären Sandsteinen oder im Verbund gebrannten Steinen ist ein räumlicher Kontext eher gegeben.
 
@@ -169,54 +169,90 @@ Symbole für Holzkohle, Rotlehm und verbrannte Knochen wurden als grafische Blö
 
 # Vorbereitung in AutoCAD
 
-## Export in DXF
+Mit einiger Wahrscheinlichkeit müssen die nachfolgende Aspekte bei der aufbereitung der AutoCAD-Dateien auf zahlreiche Dateien angewendet werden. Um dies effizienter zu gestalten können drei Dateien verwendet werden. Die liegen hier alle in dem Ordner der zu editierenden dwg-Dateien liegen, um die Pfadangabe zu vermeiden:
 
-Für den Export aller DWG-Datei in DXF kann ein Script geschrieben und als Startoption an AutoCAD innerhalb eines Batch-Scriptes übergeben werden. Die Batch-Datei zum Starten von AutoCAD wird im Ordner der DWG-Dateien aufgerufen, wodurch das Arbeitsvezeichnis hier liegt und die Pfadangaben im Skript (*.scr) entfallen können.
+1. Eine batch-Datei (.bat) zum Starten von AutoCAD einschließlich eines Skriptes (.scr). Hier muss der Pfad zur acad.exe an die jeweilige Version angepasst werden.
+2. Eine Skript-Datei (.scr) die nacheinander alle zu editierende Dateien öffnet, eine LISP-Anweisung läd und die Datei dann auch wieder schließt.
+3. Eine LISP-Datei mit einer Reihe von Abzuarbeitenden Vorgängen.
 
 ```{bash 'Starten von AutoCAD mit einem Skript.', eval=FALSE, include=TRUE}
 REM Command to start ACAD with the script to convert all DWG files to DXF
 "c:\Program Files\Autodesk\AutoCAD 2014\acad.exe" /b od_convert_dwg2dxf.scr
 ```
 
-Das Script für AutoCAD wiederholt die Befehle für jede DWG-Datei und muss mit einer **Leerzeile enden**. Sollten Sie in der DWG Änderungen vornehmen (s.u.) und wollen diese auch speichern ergänzen Sie eine Zeile mit dem Befehl "*\_qsave*" vor der Anweisung "*\_close*". Anders als bei "DWG" kann hier bei "DXF" keine AutoCAD-Version angegeben werden.   
+Das Script für AutoCAD öffnet jede genannte DWG-Datei, führt das hinterlegte LISP-Skript "do_this.lsp" aus, und schließt die Datei wieder ohne zu speichern. Der Export erfolgt in der LISP-Anweisung. Die Letzte Zeile muss eine **Leerzeile** sein. Sollten Sie in der DWG-Datei Änderungen vornehmen wollen, können Sie dies ebenfalls in der Skript-Datei "do_this.lsp" (s.u.) einbauen. 
 
 ```{bash 'Skript zur Konvertierung.', eval=FALSE, include=TRUE}
 ;; Script file for AutoCAD
-;; Start AutoCAD on the command line with option: /b <script-file>.scr"
+;; Start AutoCAD on the command line with option: /b script-file.scr"
 _open
 ODS1P101.DWG
-_saveas
-dxf
-16
-ODS1P101.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P102.DWG
 ...
+(command "_close" "_y")
 <blank line>
 ```
-Das obige Skript speichert unter der Version, die in unter "Extras > Optionen" in AutoCAD vorgegeben ist. Wenn Sie den Befehl "_saveas" mal von Hand durchspielen möchten und die jeweiligen Vorgaben des Systems sehen und ggf. nutzen wollen geben Sie in der Kommandozeile von AutoCAD folgendes ein: ```(command "_saveas")```. Damit wird der Befehl in der Kommandoizeile durchgeführt und in "\<>" steht die jeweilige Vorgabe des benötigten Parameters den Sie einfach mit \<Enter> bestätigen können. Dieses "Enter" wird im Skript einfach mit einer Leerzeile übernommen. Das bedeutet wenn Sie die automatische Speicherung in ACAD gesetzt haben kommen nach "*\_saveas*" drei leere Zeilen und die Datei steht mit dem Originalnamen jedoch mit .dxf im ursprünglichen Verzeichnis.
 
-## 
+Die LISP-Datei führt zahlreiche Änderungen und den Export durch. Die Erläuterungen dazu folgen.
 
-## Einheiten
+```{bash 'LISP-Anweisungen für den Export', eval=FALSE, include=TRUE}
+; The units will be set to 6 = meter (4 = mm, 5 = cm).
+(command "_insunits" 6)
 
-AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar in Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht oder sogar eventuell auf Inch (Britisch). Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Dazu im vorangehenden Code nach dem Öffnen der DWG-Datei und vor dem Speichern (*\_saveas*) den folgenden Code einfügen. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
+; Purge the drawing, delete the unused objects
+(command "_purge" "all" "*" "N")
 
-```{bash 'Skript-Befehl für Einheit "Meter".', eval=FALSE, include=TRUE}
-INSUNITS
-6
+; Zoom to the extend
+(command "_zoom" "_e")
+
+; save the dwg file with the current changes
+(command "_qsave")
+
+; Changes made only for the DXF-Export
+
+; Hatches in AutoCAD might produce problems e.g.:
+;  - hatch combines several objects
+;  - ring handling
+;  - centroid not within the contour. 
+; You might want to explode them to individual lines or dots 
+; to get a standard import process.
+; The filter uses a list of dotted pairs (0 . <objects>) and (8 . <list of layer names>).
+(setq SS (ssget "x" '((0 . "hatch") (8 . "FEUER,KNOCHENSCHRAFF,STEINESCHRAFF"))))
+	(if SS
+	 (progn
+	  (setq CNT 0)
+	  (repeat (sslength SS)
+	   (vl-cmdf "._explode" (ssname SS CNT))
+	   (setq CNT (1+ CNT))
+	  )
+	 )
+)
+
+;; If you want to resolve all the blocks in the drawing on specific layers take previous block but change "hatch" to "insert". 
+;; Please note: 
+;; - Objects will be exploded to the original layer, likely "0".
+;; - Attributes, e.g. numbering, will get lost.
+
+; Export to dxf including the last changes
+ (command "_saveas" "dxf" 16 "")
+)
 ```
 
-Sollten die Zeichnungen darüber hinaus tatsächlich falsch skaliert sein, kann dies in einem Zug mit folgender Befehlsfolge im Script erledigt werden. Die Leerzeile nach "all" beendet die Objektwahl und ".01" ist durch den notwendigen Faktor zu ersetzen. Für die Optik können Sie noch ein "Zoom" "G" (Grenzen) ergänzen.
+## Einheiten (INSUNITS)
+
+AutoCAD kennt Enheiten (inch, mm, m etc) und rechnet diese automatisch ineinander um. Dies wird leider oft ignoriert, so dass DWG-Dateien in der Archäologie zwar in Metern gemessen sind, die Angabe zur Einheit aber auf dem Standard "Millimeter" steht oder sogar eventuell auf Inch (Britisch). Dies kann im Export-Script gleich mit angepasst werden, um die automatische Skalierung um den Faktor 1000 bei einem heterogenem Datenbestand zu vermeiden. Hierbei steht die 6 für "Meter", 5 für "Zentimeter" und 4 für "Millimeter".
+
+Sollten die Zeichnungen darüber hinaus tatsächlich falsch skaliert sein, kann dies in einem Zug mit folgender Befehlsfolge im Script erledigt werden. Die leere Anweisung nach "all" beendet die Objektwahl, "0,0,0" bezeichnet den Ursprung der Skalierung und ".01" ist durch den notwendigen Faktor zu ersetzen. Für die Optik können Sie noch ein "Zoom" "G" (Grenzen) bzw. _e(xtend) ergänzen.
 
 ```{bash 'Skript-Befehl für die Skalierung.', eval=FALSE, include=TRUE}
-_scale
-all
-
-0,0,0
-.01
+(command "_scale" "all" "" "0,0,0" ".01"
+(command "_zoom", "_e")
 ```
+
+Darüber hinaus könnten bei dieser Gelegenheit nicht verwendete Objekte wie Linientypen, Blöcke etc. aus der Datei gelöscht werden (Bereinigen bzw. _purge). Nach diesen Änderungen wird die Datei gespeichert: ```(command "_qsave")```
 
 ## Schraffuren zerlegen
 
@@ -237,6 +273,17 @@ Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überf�
 ```
 
 Da dies nicht ganz selbsterklärend ist, eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei mit "x" alle Objekte zu, die der folgende Liste an Parametern entsprechen (*dotted pairs*, d.h. Attributkennziffer . Wert). Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt, wobei der jeweilige Objektname anhand des Zählers ermittelt wird. 
+
+Der vorangehende Abschnitt kann auch zum auflösen von Blöcken verwendet werden. Dazu muss "hatch" durch "insert" ersetzt werde. Beachten Sie aber:
+
+ - Blöcke werden auf den ursprünglichen Layer, also vermutlich "0" aufgelöst.
+ - Attribute wie z.B. eine Zählung gehen verlohren.
+ 
+Blöcke sollten Sie vorab exportieren (s. Datenextraktion).
+
+## Export in DXF
+
+Am ende des LISP-Skriptes wird alles in eine DXF-Datei mit 16 Nachkommastellen bei den Koordinaten exportiert. Hierbei wird  unter der Version gespeichert, die in unter "Extras > Optionen" in AutoCAD vorgegeben ist. Wenn Sie den Befehl "_saveas" mal von Hand durchspielen möchten, um die jeweiligen Vorgaben des Systems zu sehen und ggf. nutzen zu wollen geben Sie in der Kommandozeile von AutoCAD folgendes ein: ```(command "_saveas")```. Damit wird der Befehl in der Kommandozeile durchgeführt und in "\<>" steht die jeweilige Vorgabe des benötigten Parameters den Sie einfach mit \<Enter> bestätigen können. Dieses "Enter" wird im Skript einfach mit einer Leerzeile übernommen. Das bedeutet, wenn Sie die automatische Speicherung in ACAD gesetzt haben kommen nach "*\_saveas*" drei leere Zeilen und die Datei steht mit dem Originalnamen jedoch mit .dxf als DXF-Datei im ursprünglichen Verzeichnis.
 
 ## Datenextraktion
 

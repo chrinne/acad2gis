@@ -2,1394 +2,617 @@
 ;; Start AutoCAD on the command line with option: /b script-file.scr"
 _open
 ODS1P101.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P101.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P102.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P102.DXF
-_close
-_open
-ODS1P102.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P103.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P103.DXF
-_close
-_open
-ODS1P103.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P106.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P106.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P107.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P107.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P204.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P204.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P205.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P205.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P308.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P308.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P309.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P309.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P311.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P311.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P410.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P410.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P512.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P512.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P513.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P513.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P517.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P517.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P614.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P614.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P615.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P615.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P616.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P616.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P618.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P618.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS1P619.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS1P619.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P120.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P120.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P121.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P121.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P125.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P125.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P126.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P126.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P222.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P222.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P223.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P223.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P224.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P224.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P227.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P227.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P228.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P228.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P429.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P429.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P439.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P439.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P530.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P530.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P531.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P531.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P636.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P636.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P637.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P637.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P642.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P642.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P734.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P734.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P741.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P741.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS2P835.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS2P835.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS3P385.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS3P385.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P152.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P152.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P153.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P153.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P154.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P154.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P155.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P155.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P156.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P156.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P157.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P157.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P158.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P158.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P259.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P259.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P260.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P260.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P261.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P261.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P262.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P262.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P263.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P263.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P267.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P267.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P275.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P275.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P277.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P277.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P364.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P364.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P365.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P365.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P366.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P366.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P376.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P376.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P468.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P468.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P469.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P469.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P470.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P470.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P571.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P571.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P572.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P572.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P573.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P573.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P632.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P632.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P633.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P633.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P634.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P634.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P638.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P638.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P840.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P840.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS4P874.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS4P874.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P178.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P178.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P179.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P179.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P246.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P246.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P286.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P286.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P287.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P287.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P290.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P290.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P343.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P343.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P395.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P395.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P398.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P398.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P399.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P399.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P444.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P444.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P492.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P492.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5P691.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5P691.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS5PX45.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS5PX45.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P180.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P180.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P182.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P182.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P183.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P183.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P184.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P184.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P281.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P281.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P288.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P288.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P289.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P289.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P293.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P293.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P394.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P394.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P396.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P396.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 ODS7P397.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-ODS7P397.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS10P147.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS10P147.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS12P148.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS12P148.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS12P150.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS12P150.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS12P249.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS12P249.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS12PX51.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS12PX51.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P1109.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P1109.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P1110.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P1110.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P1113.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P1113.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P1114.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P1114.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P1115.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P1115.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P2106.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P2106.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P2107.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P2107.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P2108.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P2108.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P2111.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P2111.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P2112.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P2112.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P2116.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P2116.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P3117.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P3117.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P3118.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P3118.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P3119.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P3119.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P4120.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P4120.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P4121.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P4121.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P4122.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P4122.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P5124.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P5124.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P6123.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P6123.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS3P6125.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS3P6125.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS5P2100.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS5P2100.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS5P3101.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS5P3101.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS5P3102.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS5P3102.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS5P4103.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS5P4103.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS5P4104.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS5P4104.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P1141.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P1141.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P1142.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P1142.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P1143.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P1143.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P1149.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P1149.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P2144.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P2144.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P2145.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P2145.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P3146.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P3146.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P3150.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P3150.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P4147.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P4147.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P4151.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P4151.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P5148.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P5148.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P5152.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P5152.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS6P6153.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS6P6153.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS7P8105.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS7P8105.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P1126.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P1126.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P1127.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P1127.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P1128.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P1128.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P1136.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P1136.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P3129.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P3129.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P3130.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P3130.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P3131.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P3131.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P3137.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P3137.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P3138.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P3138.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P4132.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P4132.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P4133.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P4133.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P4134.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P4134.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P4139.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P4139.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P5135.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P5135.DXF
-_close
+(load "do_this.lsp")
+(command "_close" "_y")
 _open
 OS8P5140.DWG
-INSUNITS
-6
-_saveas
-dxf
-16
-OS8P5140.DXF
-_close
-_open
+(load "do_this.lsp")
+(command "_close" "_y")
