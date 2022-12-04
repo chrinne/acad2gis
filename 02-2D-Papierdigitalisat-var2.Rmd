@@ -119,9 +119,6 @@ Die Zeichnung enthält 1230 Polylinien (2d), 72 Linien, 18 Schraffuren, 1945 Blo
 | ... |  |  |
 | PL03_Befund | 245 | Continuous |
 | ... |  |  |
-| PL03_BefundNr | 247 | Continuous |
-| PL04_Befund | 245 | Continuous |
-| ... |  |  |
 
 Diese eindeutige Nomenklatur ist von großem Vorteil für die nachfolgende Organisation der Daten in einer SpatiaLite Datenbank. Sie erlaubt es, mit einer SQL-Anweisung alle Filterbedingungen zu formulieren. Bei einer heterogenen  Nomenklatur müssen ggf. zwei *update*-Anweisungen formuliert oder mit komplexeren  *where*-Anweisungen agiert werden. Für die Visualisierung in QGIS kann auf die Planumsangabe im Layernamen sehr einfach zugegriffen werden. Alternativ muss mit einer ergänzenden Spalte zum Planum operiert werden (s.u.). 
 
