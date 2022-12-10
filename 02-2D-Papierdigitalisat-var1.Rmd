@@ -99,7 +99,7 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen die DWG-Dateien ebenf
 
 Alle GIS trennen nach Punkt, Linie und Polygon. Die in AutoCAD sehr wichtige inhaltliche Trennung in diverse Layer wird in einem GIS beim Import in der Regel nur in einer Attributspalte wiedergegeben. Es mag für die Archivierung als auch die Nachnutzung von CAD-Dateien sinnvoll sein, jeden Layer in eine eigene DXF-Datei zu exportieren. So werden kleinere Einheiten geschaffen und eventuell vorhandene Fehler ggf. eingegrenzt.
 
-Statt Handarbeit empfiehlt sich auch hierfür eine Programmierung, bei AutoCAD in LISP:
+Statt Handarbeit empfiehlt sich hierfür eine Programmierung, bei AutoCAD in LISP:
 
 ```{bash 'LISP-Script für den Export einzelner Layer.', eval=FALSE, include=TRUE}
 ; Create list of layer names.

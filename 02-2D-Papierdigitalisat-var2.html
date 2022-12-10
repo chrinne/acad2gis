@@ -268,7 +268,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">CAD-Dokumentation zu GIS mit SpatiaLite migrieren</h1>
 <h4 class="author">Christoph Rinne</h4>
-<h4 class="date">04. Dezember 2022</h4>
+<h4 class="date">10. Dezember 2022</h4>
 
 </div>
 
@@ -473,13 +473,15 @@ where a.layer = &#39;PL01_Befund&#39;
 <div id="variante-zwei-wichtige-tabellen" class="section level3" number="2.2.3">
 <h3><span class="header-section-number">2.2.3</span> Variante: Zwei wichtige Tabellen</h3>
 <p>Bei dieser Variante wird die Tabelle ‘polyg_layer_2d’ um zwei sinnvolle Spalten für wichtige Informationen erweitern: (Befund-)Nummer und Info. Ebenso auch ‘line_layer_2d’. Dabei gilt: unbedingt die folgenden Updates bei exklusivem Zugriff von SpatiaLite ausführen und nachfolgend im Kontextmenü der Geometriespalte ‘Update Layer Statistics’ aufrufen.</p>
-<p>Anmerkung: SQLite hat <em>type affinity</em>, trivialisierte Info: in einem Feld vom Typ <em>integer</em> kann auch ‘8820A’ gespeichert werden.</p>
-<pre class="sql"><code>Alter table polyg_layer_2d add column number integer;
+<p>Anmerkungen: SQLite hat <em>type affinity</em>, trivialisierte Info: in einem Feld vom Typ <em>integer</em> kann auch ‘8820A’ gespeichert werden. Sollen mehrere auf einmal ausgeführt werden sind diese durch <code>begin transaction;</code> einzuleiten und mit <code>commit</code> am Ende auszuführen.</p>
+<pre class="sql"><code>BEGIN TRANSACTION;
+Alter table polyg_layer_2d add column number integer;
 Alter table polyg_layer_2d add column info text;
 Alter table line_layer_2d add column number integer;
 Alter table line_layer_2d add column info text;
 Update Geometry_Columns_Statistics set last_verified = 0;
-Select UpdateLayerStatistics();</code></pre>
+Select UpdateLayerStatistics();
+COMMIT;</code></pre>
 <div id="befundnummern" class="section level4" number="2.2.3.1">
 <h4><span class="header-section-number">2.2.3.1</span> Befundnummern</h4>
 <p>Nun die Befundnummer mittels <em>spatial join</em> nachschlagen und in dem Feld ‘number’ eintragen.</p>
@@ -501,7 +503,8 @@ where a.layer = &#39;PL01_Befund&#39;
   and a.feature_id = c.feature_id)
 where c.number is null;</code></pre>
 <p>Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten, kontrollieren und die Probleme von Hand analog der folgenden Anweisung bereinigen. Die “Massenzuweisung” sind überwiegend die vielen einzelnen Befunde der tiefern Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID’s könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Dies sind individuelle und situativ zu treffende Entscheidungen.</p>
-<pre class="sql"><code>Update polyg_layer_2d
+<pre class="sql"><code>Begin transaction;
+Update polyg_layer_2d
 set number = &#39;9013&#39;
 where feature_id = 111;
 Update polyg_layer_2d
@@ -512,30 +515,33 @@ set number = &#39;9011&#39;
 where feature_id in (438, 439, 814, 815, 817, 818, 819, 820);
 Update polyg_layer_2d
 set number = &#39;9009&#39;
-where feature_id in (102, 444, 445, 446, 812, 813, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019);</code></pre>
+where feature_id in (102, 444, 445, 446, 812, 813, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019);
+Commit;</code></pre>
 <p>Abschließend ggf. die 0-Nummern wieder auf NULL setzen.</p>
 <pre class="sql"><code>Update polyg_layer_2d
 set number = NULL
-where number = 0</code></pre>
-<p>Für die Darstellung der Befunde über alle Plana in QGIS kann die ‘polyg_layer_2d’ der Karte hinzugefügt werden. Objektfilter setzen auf <code>&quot;layer&quot; like &#39;PL0%_Befund&#39;</code>, dann bei der Symbologie auf ‘Abgestuft’ wechseln und als Wert mit <code>substr(&quot;layer&quot;,4,1)</code> nur die Planumsnummer aus dem standardisierten Layernamen “Pl01_Befunde” holen. Alles klassifizieren und bei Legendenformat: “Planum %%2” eintragen.</p>
+where number = 0;</code></pre>
+<p>Für die Darstellung der Befunde über alle Plana in QGIS kann die Tabelle ‘polyg_layer_2d’ der Karte hinzugefügt werden. Den Objektfilter setzen auf <code>&quot;layer&quot; like &#39;PL0%_Befund&#39;</code>, dann bei der Symbologie auf ‘Abgestuft’ wechseln und als Wert mit <code>to_int(substr(&quot;layer&quot;,3,2))</code> nur die Planumsnummer in eine Ganzzahl konvertiert aus dem standardisierten Layernamen “Pl01_Befunde” holen. Alles klassifizieren und bei Legendenformat: “Planum %%2” eintragen.</p>
 </div>
 <div id="befunde-mit-schraffur" class="section level4" number="2.2.3.2">
 <h4><span class="header-section-number">2.2.3.2</span> Befunde mit Schraffur</h4>
-<p>Im vorliegenden Fall sind die Tiergänge und andere Störungen schraffiert. Leider sind im vorliegenden Fall einige fehlerhafte Geometrien dabei. In der Spalte ‘info’ wird ein “TG” ergänzt wenn die feature_id in der Liste der Befunde mit einer innenliegenden Schraffur steht.</p>
-<pre class="sql"><code>Update polyg_layer_2d
-set info = &#39;TG&#39;
-where layer like &#39;%_Befund&#39; and 
-feature_id in (select a.feature_id 
+<p>Im vorliegenden Fall sind die Tiergänge und andere Störungen schraffiert. Leider sind im vorliegenden Fall einige fehlerhafte Geometrien dabei. In der Spalte ‘info’ wird ein “TG” ergänzt wenn die feature_id in der Liste der Befunde mit einer innen liegenden Schraffur steht.</p>
+<pre class="sql"><code>Update polyg_layer_2d as c
+set c.info = &#39;TG&#39;
+where c.layer like &#39;%_Befund&#39; and 
+ c.feature_id in (select a.feature_id 
 from polyg_layer_2d as a 
 inner join hatch_layer_2d as b on ST_Within(centroid(b.geometry),a.geometry)
 where GeometryType(b.geometry) not null);</code></pre>
 <p>Die Kontrolle wegen der fehlenden Geometrien zeigt eine Fehlzuweisung wegen der Lage des Tierganges in einem anderen Befund. Deshalb die folgende Korrekturen:</p>
-<pre class="sql"><code>Update polyg_layer_2d
+<pre class="sql"><code>Begin transaction;
+Update polyg_layer_2d
 set info = NULL
 where feature_id = 69;
 Update polyg_layer_2d
 set info = &#39;TG&#39;
-where feature_id in (71, 72, 34, 31, 47, 22, 28);</code></pre>
+where feature_id in (71, 72, 34, 31, 47, 22, 28);
+Commit;</code></pre>
 </div>
 <div id="profile" class="section level4" number="2.2.3.3">
 <h4><span class="header-section-number">2.2.3.3</span> Profile</h4>
@@ -552,17 +558,21 @@ where number is null;</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Schritt, die Nagelnamen, z.B. A, B, werden in die Info-Spalte geschrieben.</li>
 </ol>
-<pre class="sql"><code>Update line_layer_2d
-set info = (select group_concat(b.label, &#39; - &#39;)  
+<pre class="sql"><code>Update line_layer_2d as c
+set c.info = (select group_concat(b.label, &#39; - &#39;)  
  from line_layer_2d as a
  inner join text_layer_3d as b on ST_Intersects(b.geometry,a.geometry)
  where a.layer=&#39;PL01_Profil&#39; and b.layer=&#39;PL01_ProfilNr&#39; 
  group by a.feature_id
  having a.feature_id=line_layer_2d.feature_id)
-where info is null</code></pre>
-<p>Optional für das schnelle Abfragen der Profilinfos in den Layereigenschaften von QGIS folgende “Anzeige” (pop ups, ballon, Sprechblase) bei den HTML-Kartenhinweisen definieren:</p>
-<pre><code>&lt;p&gt;Befund-Nr.: [%&quot;number&quot;%] &lt;br&gt;
-Nägel: [%&quot;info&quot;%]&lt;br&gt;
+where c.info is null</code></pre>
+<p>Die SQLite Funktion <em>group_concat</em> verkettet bei Gruppierungen alle vorkommenden Werte (1. Parameter) mit einem Trennzeichen (2. Parameter).</p>
+Optional kann für das schnelle Abfragen der Profilinfos in den Layereigenschaften von QGIS folgende “Anzeige” (pop ups, ballon, Sprechblase) bei den HTML-Kartenhinweisen definieren. Dabei steht
+<p>
+</p>
+<p>für einen Absatz und kann hier auch entfallen, <b></b> für <em>bold</em> und </br> für <em>break</em>.</p>
+<pre><code>&lt;p&gt;&lt;b&gt;Befund-Nr.: [%&quot;number&quot;%]&lt;/b&gt;&lt;/br&gt;
+Nägel: [%&quot;info&quot;%]&lt;/br&gt;
 Pl.: [%substr(&quot;layer&quot;,4,1)%]&lt;/p&gt;</code></pre>
 </div>
 <div id="schnitte" class="section level4" number="2.2.3.4">

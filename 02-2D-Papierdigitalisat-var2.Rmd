@@ -3,17 +3,17 @@ title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -180,15 +180,17 @@ Das ist die arbeitsreiche und in der Datenhaltung schwierigere Variante wegen de
 
 Bei dieser Variante wird die Tabelle 'polyg_layer_2d' um zwei sinnvolle Spalten für wichtige Informationen erweitern: (Befund-)Nummer und Info. Ebenso auch 'line_layer_2d'. Dabei gilt: unbedingt die folgenden Updates bei exklusivem Zugriff von SpatiaLite ausführen und nachfolgend im Kontextmenü der Geometriespalte 'Update Layer Statistics' aufrufen.
 
-Anmerkung: SQLite hat *type affinity*, trivialisierte Info: in einem Feld vom Typ *integer* kann auch '8820A' gespeichert werden.
+Anmerkungen: SQLite hat *type affinity*, trivialisierte Info: in einem Feld vom Typ *integer* kann auch '8820A' gespeichert werden. Sollen mehrere auf einmal ausgeführt werden sind diese durch ```begin transaction;``` einzuleiten und mit ```commit``` am Ende auszuführen. 
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+BEGIN TRANSACTION;
 Alter table polyg_layer_2d add column number integer;
 Alter table polyg_layer_2d add column info text;
 Alter table line_layer_2d add column number integer;
 Alter table line_layer_2d add column info text;
 Update Geometry_Columns_Statistics set last_verified = 0;
 Select UpdateLayerStatistics();
+COMMIT;
 ```
 
 #### Befundnummern
@@ -222,6 +224,7 @@ where c.number is null;
 Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten, kontrollieren und die Probleme von Hand analog der folgenden Anweisung  bereinigen. Die "Massenzuweisung" sind überwiegend die vielen einzelnen Befunde der tiefern Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID's könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Dies sind individuelle und situativ zu treffende Entscheidungen.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+Begin transaction;
 Update polyg_layer_2d
 set number = '9013'
 where feature_id = 111;
@@ -234,6 +237,7 @@ where feature_id in (438, 439, 814, 815, 817, 818, 819, 820);
 Update polyg_layer_2d
 set number = '9009'
 where feature_id in (102, 444, 445, 446, 812, 813, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019);
+Commit;
 ```
 
 Abschließend ggf. die 0-Nummern wieder auf NULL setzen.
@@ -241,20 +245,20 @@ Abschließend ggf. die 0-Nummern wieder auf NULL setzen.
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 Update polyg_layer_2d
 set number = NULL
-where number = 0
+where number = 0;
 ```
 
-Für die Darstellung der Befunde über alle Plana in QGIS kann die 'polyg_layer_2d' der Karte hinzugefügt werden. Objektfilter setzen auf ```"layer" like 'PL0%_Befund'```, dann bei der Symbologie auf 'Abgestuft' wechseln und als Wert mit ``` substr("layer",4,1) ``` nur die Planumsnummer aus dem standardisierten Layernamen "Pl01_Befunde" holen. Alles klassifizieren und bei Legendenformat: "Planum %%2" eintragen.
+Für die Darstellung der Befunde über alle Plana in QGIS kann die Tabelle 'polyg_layer_2d' der Karte hinzugefügt werden. Den Objektfilter setzen auf ```"layer" like 'PL0%_Befund'```, dann bei der Symbologie auf 'Abgestuft' wechseln und als Wert mit ```to_int(substr("layer",3,2))``` nur die Planumsnummer in eine Ganzzahl konvertiert aus dem standardisierten Layernamen "Pl01_Befunde" holen. Alles klassifizieren und bei Legendenformat: "Planum %%2" eintragen.
 
 #### Befunde mit Schraffur
 
-Im vorliegenden Fall sind die Tiergänge und andere Störungen schraffiert. Leider sind im vorliegenden Fall einige fehlerhafte Geometrien dabei. In der Spalte 'info' wird ein "TG" ergänzt wenn die feature_id in der Liste der Befunde mit einer innenliegenden Schraffur steht.
+Im vorliegenden Fall sind die Tiergänge und andere Störungen schraffiert. Leider sind im vorliegenden Fall einige fehlerhafte Geometrien dabei. In der Spalte 'info' wird ein "TG" ergänzt wenn die feature_id in der Liste der Befunde mit einer innen liegenden Schraffur steht.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
-Update polyg_layer_2d
-set info = 'TG'
-where layer like '%_Befund' and 
-feature_id in (select a.feature_id 
+Update polyg_layer_2d as c
+set c.info = 'TG'
+where c.layer like '%_Befund' and 
+ c.feature_id in (select a.feature_id 
 from polyg_layer_2d as a 
 inner join hatch_layer_2d as b on ST_Within(centroid(b.geometry),a.geometry)
 where GeometryType(b.geometry) not null);
@@ -263,12 +267,14 @@ where GeometryType(b.geometry) not null);
 Die Kontrolle wegen der fehlenden Geometrien zeigt eine Fehlzuweisung wegen der Lage des Tierganges in einem anderen Befund. Deshalb die folgende Korrekturen:
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
+Begin transaction;
 Update polyg_layer_2d
 set info = NULL
 where feature_id = 69;
 Update polyg_layer_2d
 set info = 'TG'
 where feature_id in (71, 72, 34, 31, 47, 22, 28);
+Commit;
 ```
 
 #### Profile
@@ -289,21 +295,23 @@ where number is null;
 2. Schritt, die Nagelnamen, z.B. A, B, werden in die Info-Spalte geschrieben.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
-Update line_layer_2d
-set info = (select group_concat(b.label, ' - ')  
+Update line_layer_2d as c
+set c.info = (select group_concat(b.label, ' - ')  
  from line_layer_2d as a
  inner join text_layer_3d as b on ST_Intersects(b.geometry,a.geometry)
  where a.layer='PL01_Profil' and b.layer='PL01_ProfilNr' 
  group by a.feature_id
  having a.feature_id=line_layer_2d.feature_id)
-where info is null
+where c.info is null
 ```
 
-Optional für das schnelle Abfragen der Profilinfos in den Layereigenschaften von QGIS folgende "Anzeige" (pop ups, ballon, Sprechblase) bei den HTML-Kartenhinweisen definieren:
+Die SQLite Funktion *group_concat* verkettet bei Gruppierungen alle vorkommenden Werte (1. Parameter) mit einem Trennzeichen (2. Parameter).
+
+Optional kann für das schnelle Abfragen der Profilinfos in den Layereigenschaften von QGIS folgende "Anzeige" (pop ups, ballon, Sprechblase) bei den HTML-Kartenhinweisen definieren. Dabei steht <p></p> für einen Absatz und kann hier auch entfallen, <b></b> für *bold* und </br> für *break*.
 
 ```{}
-<p>Befund-Nr.: [%"number"%] <br>
-Nägel: [%"info"%]<br>
+<p><b>Befund-Nr.: [%"number"%]</b></br>
+Nägel: [%"info"%]</br>
 Pl.: [%substr("layer",4,1)%]</p>
 ```
 
