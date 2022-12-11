@@ -268,7 +268,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">CAD-Dokumentation zu GIS mit SpatiaLite migrieren</h1>
 <h4 class="author">Christoph Rinne</h4>
-<h4 class="date">10. Dezember 2022</h4>
+<h4 class="date">11. Dezember 2022</h4>
 
 </div>
 
@@ -286,7 +286,7 @@ div.tocify {
 <li>Tastaturkürzel, die ich gerne Nutze, stehen in Spitzklammern je Taste: &lt;strg&gt; + &lt;c&gt;.</li>
 <li>Schalter auf Formularen werden in [] gesetzt: [OK]</li>
 <li>Zur Darstellung von Befehlen im Text nutze ich die in Markdown übliche Darstellung von Code oder eben Anweisungen an den Computer: <code>anweisung</code>.</li>
-<li>SQL-Anweisungen sind nicht in Großbuchstaben gesetzt, die farbliche Gestaltung macht dies überflüssig. Eine Ausnahme bilden die verwendeten Funktion bei denen der <em>CamelCase</em> für die bessere Lesbarkeit beibehalten wird. Auch wird der Anfang einer Anweisungen jeweils groß geschrieben, um aufeinander folgende Anweisungen etwas besser zu trennen. Im vorliegenden Fall wurden Leerzeichen in Objektnamen vermieden, dadurch müssen Tabellen und Feldnamen nicht in “” stehen.</li>
+<li>SQL-Anweisungen sind nicht in Großbuchstaben gesetzt, die farbliche Gestaltung macht dies überflüssig. Eine Ausnahme bilden die verwendeten Funktion bei denen der <em>CamelCase</em> für die bessere Lesbarkeit beibehalten wird. Auch wird der Anfang einer Anweisungen jeweils großgeschrieben, um aufeinander folgende Anweisungen etwas besser zu trennen. Im vorliegenden Fall wurden Leerzeichen in Objektnamen vermieden, dadurch müssen Tabellen und Feldnamen nicht in “” stehen.</li>
 <li>Der Text enthält viele Links die auf Papier nicht funktionieren. Sparen Sie bitte Papier und verzichten Sie auf den Ausdruck.</li>
 </ul>
 <div id="verwendete-software-informationen" class="section level2" number="1.1">
@@ -299,7 +299,7 @@ div.tocify {
 <li><p>SpatiaLite Cookbook html [<a href="http://www.gaia-gis.it/gaia-sins/spatialite-cookbook/index.html" class="uri">http://www.gaia-gis.it/gaia-sins/spatialite-cookbook/index.html</a>]</p></li>
 <li><p>SpatiaLite Funktionen [<a href="http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html" class="uri">http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html</a>]</p></li>
 </ul>
-<p>AutoCAD ist eine sehr komplexe Software und Ausgrabungen können eine komplexe Struktur annehem, die es zu dokumentieren gilt. Erwarten Sie nicht, dass die notwendige Kompetenz beim Erstellen der digitalen Daten stets vorhanden war, auch der Autor (Chr. Rinne) ist hier nur Autodidakt.</p>
+<p>AutoCAD ist eine sehr komplexe Software und Ausgrabungen können eine komplexe Struktur annehmen, die es zu dokumentieren gilt. Erwarten Sie nicht, dass die notwendige Kompetenz beim Erstellen der digitalen Daten stets vorhanden war, auch der Autor (Chr. Rinne) ist hier nur Autodidakt.</p>
 <p>Rechnen Sie mit Fehlern im originalen Datenbestand und einer ggf. nicht optimalen Struktur oder erwarten Sie nicht die von Ihnen bevorzugte Struktur. Korrektur von Fehler und Anpassungen der Struktur erfolgen sicher am besten im originalen Arbeitsumfeld, also CAD.</p>
 <p>Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:</p>
 <ul>
@@ -430,12 +430,12 @@ div.tocify {
 </tr>
 </tbody>
 </table>
-<p>Diese eindeutige Nomenklatur ist von großem Vorteil für die nachfolgende Organisation der Daten in einer SpatiaLite Datenbank. Sie erlaubt es, mit einer SQL-Anweisung alle Filterbedingungen zu formulieren. Bei einer heterogenen Nomenklatur müssen ggf. zwei <em>update</em>-Anweisungen formuliert oder mit komplexeren <em>where</em>-Anweisungen agiert werden. Für die Visualisierung in QGIS kann auf die Planumsangabe im Layernamen sehr einfach zugegriffen werden. Alternativ muss mit einer ergänzenden Spalte zum Planum operiert werden (s.u.).</p>
+<p>Diese eindeutige Nomenklatur ist von großem Vorteil für die nachfolgende Organisation der Daten in einer SpatiaLite Datenbank. Sie erlaubt es, mit einer SQL-Anweisung alle Filterbedingungen zu formulieren. Bei einer heterogenen Nomenklatur müssen ggf. zwei <em>update</em>-Anweisungen formuliert oder mit komplexeren <em>where</em>-Anweisungen agiert werden. Für die Visualisierung in QGIS kann auf die Planumangabe im Layernamen sehr einfach zugegriffen werden. Alternativ muss mit einer ergänzenden Spalte zum Planum operiert werden (s.u.).</p>
 <p><strong>Wichtig</strong> Innerhalb von jedem Befund steht als Text und als Block mit Attribut eine Befundnummer, an jeder Profillinie steht ein Text mit der Bezeichnung des Profiles oder des jeweiligen Endpunktes. Diese Informationen werden in GIS räumlich verbunden.</p>
 </div>
 <div id="spatialite-gui" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> SpatiaLite GUI</h2>
-<p>Nach dem Start der GUI bitte”Menu &gt; Create a new (empty) SQLite DB” ausführen. In diese wird die dxf-Datei mit der gesamten Ausgrabung importiert: “Menu &gt; Advanced &gt; Import DXF drawings”. Im Fenster zum Import bitte folgende Angaben: (x) Import selected DXF drawing file only, SRID: 31467, [v] Append to already existing tables, Dimensions: (x) authomatic 2D/3D, (x) mixed layers, Special Rings handling (x) none. Diese Angaben beziehen sich auf den aktuellen Import und müssen ggf. angepasst werden. Die Option ‘mixed layers’ trennt nur die Typen (Punkt, Linie Polygon, Text), die Layer werden als Attribut (Spalte) angelegt. Die Alternative trennt erst die Layer und dann nach Typen, erstellt also das x-Fache der vorhandenen CAD-Layer als Tabellen.</p>
+<p>Nach dem Start der GUI bitte “Menu &gt; Create a new (empty) SQLite DB” ausführen. In diese wird die dxf-Datei mit der gesamten Ausgrabung importiert: “Menu &gt; Advanced &gt; Import DXF drawings”. Im Fenster zum Import bitte folgende Angaben: (x) Import selected DXF drawing file only, SRID: 31467, [v] Append to already existing tables, Dimensions: (x) authomatic 2D/3D, (x) mixed layers, Special Rings handling (x) none. Diese Angaben beziehen sich auf den aktuellen Import und müssen ggf. angepasst werden. Die Option ‘mixed layers’ trennt nur die Typen (Punkt, Linie Polygon, Text), die Layer werden als Attribut (Spalte) angelegt. Die Alternative trennt erst die Layer und dann nach Typen, erstellt also das x-Fache der vorhandenen CAD-Layer als Tabellen.</p>
 <p>Als Ergebnis sind folgende Tabellen überwiegend mit den Spalten feature_id, filename, layer und geometry als auch und eine <em>view</em> (gespeicherte Abfrage) vorhanden:</p>
 <ul>
 <li>hatch_layer_2d (benötigt)</li>
@@ -446,22 +446,22 @@ div.tocify {
 <li>text_layer_3d_attr (nicht benötigt)</li>
 <li>text_layer_3d_view (nicht benötigt)</li>
 </ul>
-<div id="datenkontrole" class="section level3" number="2.2.1">
-<h3><span class="header-section-number">2.2.1</span> Datenkontrole</h3>
-<p>Prüfen Sie die jeweils resultierende Geometrie, vor allem ob MULTI-Typen vorliegen, z.B. MULTIPOLYGON. Das ist hier nicht der Fall und damit können Teilbefunde nicht zu einem kombinierten Objekt verschmolzen werden. Bei bedarf lautet die Funktion in SpatiaLite: <a href="http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html#cast">CastToMulti</a>. An dieser Stelle ein schnelle Kontrolle des Datenbestandes durch eine Tabellierung der Layer in jeder Tabelle</p>
+<div id="datenkontrolle" class="section level3" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> Datenkontrolle</h3>
+<p>Prüfen Sie die jeweils resultierende Geometrie, vor allem ob MULTI-Typen vorliegen, z.B. MULTIPOLYGON. Das ist hier nicht der Fall und damit können Teilbefunde nicht zu einem kombinierten Objekt verschmolzen werden. Bei Bedarf lautet die Funktion in SpatiaLite: <a href="http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html#cast">CastToMulti</a>. An dieser Stelle ein schnelle Kontrolle des Datenbestandes durch eine Aufstellung der Layer in jeder Tabelle.</p>
 <pre class="sql"><code>Select layer, GeometryType(geometry) as geomtype, Count(*) as n 
 from hatch_layer_2d
 group by 1, 2</code></pre>
-<p>Die Syntax gruppiert auf die erste und zweite Spalte, den Layernamen und die Abfrage des Geometrietyps, dazu liefert sie die Anzahl der Einträge. Warum einige Geometrien nicht vorliegen (NULL) kann ich nicht sagen. Im vorliegenden Fall handelt es sich durchgängig um eine Kreuzschaffur (ANSI37) für Tiergänge oder andere Störungen.</p>
+<p>Die Syntax gruppiert auf die erste und zweite Spalte, den Layernamen und die Abfrage des Geometrietyps, dazu liefert sie die Anzahl der Einträge. Warum einige Geometrien nicht vorliegen (NULL) kann ich nicht sagen. Im vorliegenden Fall handelt es sich durchgängig um eine Kreuzschraffur (ANSI37) für Tiergänge oder andere Störungen.</p>
 <pre class="sql"><code>select layer, GeometryType(geometry) as geomtype, Count(*) as n 
 from line_layer_2d
 group by 1, 2</code></pre>
-<p>Diese Abfrage liefert im vorliegenden Fall zwei Problemgruppen: Pl01_Steine hat elf und PL02_Befunde hat zwei Linienobjekte. In allen Fällen sollten das aber Polygone sein. Die Korrektur erfogt am besten in CAD: beim Layer Steine ist es ein Stein der aus zehn einzelnen Linien besteht und beim Layer Befunde sind es zwei nicht geschlossene Befunde. Die Grabungsgrenzen sind im vorliegenden Fall aufgrund der Vorgaben heterogen sowohl als Polygon als auch als Linie vorhanden. Hier ist die jeweilige Fragestellung relevant: z.B. Fläche bemessen oder 1:1-Abbildung des Papiers.</p>
+<p>Diese Abfrage liefert im vorliegenden Fall zwei Problemgruppen: Pl01_Steine hat elf und PL02_Befunde hat zwei Linienobjekte. In allen Fällen sollten das aber Polygone sein. Die Korrektur erfolgt am besten in CAD: beim Layer Steine ist es ein Stein der aus zehn einzelnen Linien besteht und beim Layer Befunde sind es zwei nicht geschlossene Befunde. Die Grabungsgrenzen sind im vorliegenden Fall aufgrund der Vorgaben heterogen sowohl als Polygon als auch als Linie vorhanden. Hier ist die jeweilige Fragestellung relevant: z.B. Fläche bemessen oder 1:1-Abbildung des Papiers.</p>
 <p>Die Tabelle text_layer_3d_attr und die Sicht (<em>view</em>) text_layer_3d_attr_view liefern in diesem Fall keine erhellenden Informationen und können wie hatch_layer_2d gelöscht werden.</p>
 </div>
 <div id="variante-viele-tabellen" class="section level3" number="2.2.2">
 <h3><span class="header-section-number">2.2.2</span> Variante: Viele Tabellen</h3>
-<p>Eine Option sowohl die Informationen aus ‘polyg_layer_2d’ nach Befunden, Grabunsgrenzen, Steinen etc. zu trennen und mit dem Feld ‘label’ aus ‘text_layer_3d’ zu verbinden kann über Abfrage simuliert und dann als <em>create-table</em>-Anweisung umgesetzt werden. Dies führt zu sehr vielen Tabellen und ist hier nicht Ziel des Vorgehens.</p>
+<p>Eine Option sowohl die Informationen aus ‘polyg_layer_2d’ nach Befunden, Grabungsgrenzen, Steinen etc. zu trennen und mit dem Feld ‘label’ aus ‘text_layer_3d’ zu verbinden kann über Abfrage simuliert und dann als <em>create-table</em>-Anweisung umgesetzt werden. Dies führt zu sehr vielen Tabellen und ist hier nicht Ziel des Vorgehens.</p>
 <pre class="sql"><code>Select a.*, b.label
 from polyg_layer_2d as a 
 join text_layer_3d as b on ST_Within(b.geometry, a.geometry)
@@ -502,7 +502,7 @@ where a.layer = &#39;PL01_Befund&#39;
   and b.layer = &#39;PL01_BefundNr&#39;
   and a.feature_id = c.feature_id)
 where c.number is null;</code></pre>
-<p>Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten, kontrollieren und die Probleme von Hand analog der folgenden Anweisung bereinigen. Die “Massenzuweisung” sind überwiegend die vielen einzelnen Befunde der tiefern Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID’s könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Dies sind individuelle und situativ zu treffende Entscheidungen.</p>
+<p>Nicht alles wird korrekt laufen. In QGIS die Beschriftung der Befunde einrichten, kontrollieren und die Probleme von Hand analog der folgenden Anweisung bereinigen. Die “Massenzuweisung” sind überwiegend die vielen einzelnen Befunde der tieferen Plana die nicht individuell benannt wurden. Optional zur Handarbeit über die Liste von ID’s könnte auch mit einem großen Puffer um die Befundnummer (s.o.) gearbeitet werden. Allerdings sollte ein Pfosten in einem Grubenhaus besser eine neue Befundnummer erhalten oder die einzelnen Quadranten einer Grube im Planum 1 sollten doch eher zu einem Befund verschmolzen werden. Dies sind individuelle und situativ zu treffende Entscheidungen.</p>
 <pre class="sql"><code>Begin transaction;
 Update polyg_layer_2d
 set number = &#39;9013&#39;
@@ -533,7 +533,7 @@ where c.layer like &#39;%_Befund&#39; and
 from polyg_layer_2d as a 
 inner join hatch_layer_2d as b on ST_Within(centroid(b.geometry),a.geometry)
 where GeometryType(b.geometry) not null);</code></pre>
-<p>Die Kontrolle wegen der fehlenden Geometrien zeigt eine Fehlzuweisung wegen der Lage des Tierganges in einem anderen Befund. Deshalb die folgende Korrekturen:</p>
+<p>Die Kontrolle wegen der fehlenden Geometrien zeigt eine Fehlzuweisung wegen der Lage des Tierganges in einem anderen Befund. Deshalb die folgenden Korrekturen:</p>
 <pre class="sql"><code>Begin transaction;
 Update polyg_layer_2d
 set info = NULL
@@ -567,7 +567,7 @@ set c.info = (select group_concat(b.label, &#39; - &#39;)
  having a.feature_id=line_layer_2d.feature_id)
 where c.info is null</code></pre>
 <p>Die SQLite Funktion <em>group_concat</em> verkettet bei Gruppierungen alle vorkommenden Werte (1. Parameter) mit einem Trennzeichen (2. Parameter).</p>
-Optional kann für das schnelle Abfragen der Profilinfos in den Layereigenschaften von QGIS folgende “Anzeige” (pop ups, ballon, Sprechblase) bei den HTML-Kartenhinweisen definieren. Dabei steht
+Optional kann für das schnelle Abfragen der Profilinfos in den Layereigenschaften von QGIS folgende “Anzeige” (pop up, ballon, Sprechblase) bei den HTML-Kartenhinweisen definieren. Dabei steht
 <p>
 </p>
 <p>für einen Absatz und kann hier auch entfallen, <b></b> für <em>bold</em> und </br> für <em>break</em>.</p>
@@ -577,7 +577,7 @@ Pl.: [%substr(&quot;layer&quot;,4,1)%]&lt;/p&gt;</code></pre>
 </div>
 <div id="schnitte" class="section level4" number="2.2.3.4">
 <h4><span class="header-section-number">2.2.3.4</span> Schnitte</h4>
-<p>Bei den Schnitten sind es die Layer mit ‘Grabungsgrenze’ oder ‘Schnitt’ die bearbeitet werden müssen. Es sind z.B. die Dokumentationsgrenzen um die jeweiligen Befunde oder auch die “echten” Schnitte, z.B. durch den Graben. Beides wird hier erstmal zusammengefasst behandelt. Die Update-Anweisung beinhaltet mehrfach verschachtelte Unterabfragen.</p>
+<p>Bei den Schnitten sind es die Layer mit ‘Grabungsgrenze’ oder ‘Schnitt’ die bearbeitet werden müssen. Es sind z.B. die Dokumentationsgrenzen um die jeweiligen Befunde oder auch die “echten” Schnitte, z.B. durch den Graben. Beides wird hier zusammengefasst behandelt. Die Update-Anweisung beinhaltet mehrfach verschachtelte Unterabfragen.</p>
 <pre class="sql"><code>Update polyg_layer_2d as c
 set info = (select b.label 
  from (select * 
@@ -638,7 +638,7 @@ set number = (select a.number
  on ST_Relate(b.geometry, a.geometry)
  where c.feature_id = b.feature_id)
 where info = &#39;Stein&#39;;</code></pre>
-<p>Einige wenige Steine liegen außerhalb eines Befundes in jeweils einem Fall in Planum 2 (Bef. 9011) und 3 (9003). Da es sich beim anstehenden Boden um Löss handelt ist die Abgenzung der Befunde offensichtlich schwierig gewesen und muss bedingt hinterfragt werden. Im Planum 1 können an der Grenze noch Steine des Pflughorizontes vorkommen.</p>
+<p>Einige wenige Steine liegen außerhalb eines Befundes in jeweils einem Fall in Planum 2 (Bef. 9011) und 3 (9003). Da es sich beim anstehenden Boden um Löss handelt ist die Abgrenzung der Befunde offensichtlich schwierig gewesen und muss bedingt hinterfragt werden. Im Planum 1 können an der Grenze noch Steine des Pflughorizontes vorkommen.</p>
 </div>
 <div id="text-und-bockattribute" class="section level4" number="2.2.3.6">
 <h4><span class="header-section-number">2.2.3.6</span> Text und Bockattribute</h4>
@@ -698,7 +698,7 @@ where info = &#39;Stein&#39;;</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Die ersten drei Zeilen der Tabelle zeigen die Daten für den Block der Befund-Nr 9021: 1. die eigentliche Blockreferenz, 2. den mit dem Block auch eingefügten Text und 3. das Attribut des Blockes. Letzteres wird aber aufgelöst auf den ursprünglichen Layer ‘0’ der Layerdefinition abgelegt. Das gleiche passiert auch mit den Attributen der Fundnummern, den Datumsangaben der Erfassung und den Niv-Werten. Nur die als Text und nicht als Attribut oder grafisches Symbol eingefügten Hinweise auf Brandlehm (BL) werden auf dem jeweiligen Layer aufgelöst.</p>
+<p>Die ersten drei Zeilen der Tabelle zeigen die Daten für den Block der Befund-Nr. 9021: 1. die eigentliche Blockreferenz, 2. den mit dem Block auch eingefügten Text und 3. das Attribut des Blockes. Letzteres wird aber aufgelöst auf den ursprünglichen Layer ‘0’ der Layerdefinition abgelegt. Das gleiche passiert auch mit den Attributen der Fundnummern, den Datumsangaben der Erfassung und den Niv-Werten. Nur die als Text und nicht als Attribut oder grafisches Symbol eingefügten Hinweise auf Brandlehm (BL) werden auf dem jeweiligen Layer aufgelöst.</p>
 <p>Bis auf die Informationen zur Lage von Brandlehm und Holzkohle sind diese Informationen ohne den Bezug zum Planum bzw. dem ursprünglichen Layer in CAD unbrauchbar. Die DXF-Import-Erweiterung “<a href="https://gis.makobo.de/en_qgis-dxfimport-dxf2shape">AnotherDXFImporter</a>” bietet faszinierende Möglichkeiten, ist bei dieser Aufgabe aber auch keine bessere Option.</p>
 <p>Die Lösungen für das Import-Problem der CAD-Blöcke können sein:</p>
 <ol style="list-style-type: decimal">
@@ -765,14 +765,14 @@ set geometry = (select ST_GeomFromText((&#39;POINTZ(&#39; || &quot;Position_X&qu
 <h1 class="unnumbered">Literatur</h1>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-fiedlerBefestigteSiedlungJungsteinzeit1991" class="csl-entry">
-Fiedler, L., 1991. Eine Befestigte <span>Siedlung</span> Der <span>Jungsteinzeit</span> Bei <span>Wittelsberg</span>, <span>Kreis Marburg-Biedenkopf</span>. <span>Zur Archäologie</span> Des 4. Und 3. <span>Jahrtausends</span> Vor <span>Christus</span>. Denkmalpflege in Hessen 1991, 23–27.
+Fiedler, L., 1991. Eine befestigte <span>Siedlung</span> der <span>Jungsteinzeit</span> bei <span>Wittelsberg</span>, <span>Kreis Marburg-Biedenkopf</span>. <span>Zur Archäologie</span> des 4. und 3. <span>Jahrtausends</span> vor <span>Christus</span>. Denkmalpflege in Hessen 1991, 23–27.
 </div>
 </div>
 </div>
 <div class="footnotes">
 <hr />
 <ol>
-<li id="fn1"><p>Mit freundlicher Genehmigung des Landesdenmalamtes Hessen, Außenstelle Marburg.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p>Mit freundlicher Genehmigung des Landesdenkmalamtes Hessen, Außenstelle Marburg.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 
