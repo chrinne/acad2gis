@@ -1,0 +1,39 @@
+Name	Farbe	Linientyp	Plotstil
+0	weiß	Continuous	Color_7
+00Befund	36	Continuous	Color_36
+00BefundNr	36	Continuous	Color_36
+00Profil	blau	Continuous	Color_5
+00ProfilNr	blau	Continuous	Color_5
+Befunde	36	Continuous	Color_36
+Befunde Planum 2	33	Continuous	Color_33
+Befundnummern	36	Continuous	Color_36
+Bronzenadel	124	Continuous	Color_124
+CONTROL	magenta	Continuous	Color_6
+Defpoints	weiß	Continuous	Color_7
+Flächengrenzen	rot	Continuous	Color_1
+GGok	50	Continuous	Color_50
+GGuk	weiß	Continuous	Color_7
+Grabungsgrenze	102	STRICHPUNKTX2	Color_102
+Gruben	252	Continuous	Color_252
+GUK	90	ACAD_ISO10W100	Color_90
+HÖHEN	weiß	Continuous	Color_7
+Höhenpunkte Befunde	weiß	Continuous	Color_7
+Keramik Pl.1	60	Continuous	Color_60
+Knochenreste	40	Continuous	Color_40
+Neolithikum	120	Continuous	Color_120
+Papierbereich	weiß	Continuous	Color_7
+Papierbreich Legende	weiß	Continuous	Color_7
+Passpunkte	magenta	Continuous	Color_6
+Pfosten	254	Continuous	Color_254
+Photogrammetriepunkte	160	Continuous	Color_160
+Pl1-Keramik	rot	Continuous	Color_1
+Pl2-Befunde	weiß	Continuous	Color_7
+Pl2-Keramik	rot	Continuous	Color_1
+Pl2-Knochen	blau	Continuous	Color_5
+Profile	160	Continuous	Color_160
+Profilzeichennägel	200	Continuous	Color_200
+Salzmünder Kultur	132	Continuous	Color_132
+SBZ EZ	16	Continuous	Color_16
+Silex-Messer	220	Continuous	Color_220
+Störung	250	Continuous	Color_250
+Umrandung Hausgrundriss	blau	Continuous	Color_5

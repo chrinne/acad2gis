@@ -15,8 +15,10 @@ Es muss demnach auf archäologischer Seite Kompetenz und *know how* im Umgang mi
 Ausgangspunkte sind zwei unterschiedliche Projekte:
 
  1. Eine 1997 digitalisierte Papierdokumentation zur Ausgrabung des **Kollektivgraben Odagsen** (1980-1984). Entsprechend der Vorlage liegen sehr viele 2D Dateien mit ergänzenden Informationen vor.
+ 
+ 2. Eine 1988 und 1990 durchgeführte und auf Papier dokumentierte Flächengrabung einer Siedlung, die 2021 in eine einzige Datei mit AutoCAD anhand der eingebundenen Zeichnungen (xref) digitalisiert wurde. Hierbei wurden Layernamen und Blöcke mit Attribut sehr konsequent genutzt. 
 
- 2. Eine tachymetrisch direkt digital in AutoCAD dokumentierte Ausgrabung. Die Daten liegen als 3D- und 2D-Objekte vor.
+ 3. Eine tachymetrisch direkt digital in AutoCAD dokumentierte Flächenausgrabung. Die Daten liegen als 3D- und 2D-Objekte mit einigen typischen Fehlern vor. Der Fokus liegt auf der Behebung dieser Fehler im Zuge der Aufbereitung für das GIS.
  
 Ziel ist in jedem Fall eine SpatiaLite Datenbank. Diese bietet die Möglichkeiten einer Datenbank ohne den Einsatz eines Servers und dem damit notwendigen Aufwand bei Service, Update und Sicherheit. 
 
