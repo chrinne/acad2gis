@@ -317,19 +317,24 @@ Pl.: [%substr("layer",4,1)%]</p>
 
 #### Schnitte
 
-Bei den Schnitten sind es die Layer mit 'Grabungsgrenze' oder 'Schnitt' die bearbeitet werden müssen. Es sind z.B. die Dokumentationsgrenzen um die jeweiligen Befunde oder auch die "echten" Schnitte, z.B. durch den Graben. Beides wird hier zusammengefasst behandelt. Die Update-Anweisung beinhaltet mehrfach verschachtelte Unterabfragen.
+Bei den Schnitten sind es die Layer mit 'Grabungsgrenze' oder 'Schnitt' die bearbeitet werden müssen. Es sind z.B. die Dokumentationsgrenzen um die jeweiligen Befunde oder auch die "echten" Schnitte, z.B. durch den Graben. Beides wird hier zusammengefasst behandelt. Die Update-Anweisung beinhaltet verschachtelte Unterabfragen.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 Update polyg_layer_2d as c
-set info = (select b.label 
- from (select * 
-   from polyg_layer_2d
-   where layer like '%Grabungsgrenze%' or layer like '%Schnitt%') as a
- inner join (select * 
-  from text_layer_3d 
-  where layer like '%SchnittNr') as b 
- on ST_Within(b.geometry,a.geometry)
- where c.feature_id = a.feature_id)
+set info = 
+  -- 1.
+  (select b.label from 
+    -- 2.
+    (select * from polyg_layer_2d
+      where layer like '%Grabungsgrenze%' or layer like '%Schnitt%') as a
+    -- Ende 2.
+    inner join
+    -- 3.
+    (select * from text_layer_3d where layer like '%SchnittNr') as b 
+    -- Ende 3.
+    on ST_Within(b.geometry,a.geometry)
+  where c.feature_id = a.feature_id)
+  -- Ende 1. 
 where info is null;
 ```
 
@@ -347,7 +352,7 @@ set info = 'Grabungsgrenze 1988 CAD Plan'
 where feature_id = 147;
 ```
 
-Im vorliegenden Fall ist ein **ärgerlicher Fehler** dabei, die konstruierte externe Grabungsgrenze um die gesamte Fläche von 1989 nach dem CAD-Plan und einem Luftbilddia von 1990 war nicht geschlossen und ist bei den Linien gelandet. Folgende Schritte zur Lösung dieses oder vergleichbarer Fälle:
+Im vorliegenden Fall ist ein **ärgerlicher Fehler** dabei, die konstruierte externe Grabungsgrenze um die gesamte Fläche von 1989 nach dem CAD-Plan und einem Luftbilddia von 1990 war nicht geschlossen und ist bei den Linien gelandet. Folgende Schritte zur Lösung dieses oder vergleichbarer Fälle. Um die jeweiligen Ergebnisse zu sehen führen Sie die Abfragen einzeln aus. Ansonsten ergänzen Sie ```begin transaction;``` am Anfang und ```commit;``` am Ende.
 
 ```{sql, eval=FALSE, connection=wit7db, include=TRUE}
 -- Problem identifizieren:
