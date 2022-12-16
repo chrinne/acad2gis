@@ -3,17 +3,17 @@ title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -319,15 +319,20 @@ Bei den Schnitten sind es die Layer mit 'Grabungsgrenze' oder 'Schnitt' die bear
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Update polyg_layer_2d as c
-set info = (select b.label 
- from (select * 
-   from polyg_layer_2d
-   where layer like '%Grabungsgrenze%' or layer like '%Schnitt%') as a
- inner join (select * 
-  from text_layer_3d 
-  where layer like '%SchnittNr') as b 
- on ST_Within(b.geometry,a.geometry)
- where c.feature_id = a.feature_id)
+set info = 
+  -- 1.
+  (select b.label from 
+    --2.
+    (select * from polyg_layer_2d
+      where layer like '%Grabungsgrenze%' or layer like '%Schnitt%') as a
+    -- Ende 2.
+    inner join 
+    -- 3.
+    (select * from text_layer_3d where layer like '%SchnittNr') as b 
+    -- Ende 3.
+  on ST_Within(b.geometry,a.geometry) and (substr(b.layer,1,4) = substr(a.layer,1,4)))
+  where c.feature_id = a.feature_id)
+  -- Ende 1. 
 where info is null;
 ```
 
@@ -352,13 +357,13 @@ Im vorliegenden Fall ist ein **ärgerlicher Fehler** dabei, die konstruierte ext
 Select *, ST_Length(geometry) from line_layer_2d
 where layer like 'Pl01_G%';
 -- Zur Kontrolle, Linie zu Polygon konvertieren:
-Select st_GeometryType(ST_BuildArea(ST_AddPoint(geometry, ST_StartPoint(geometry)))) as geom 
+Select st_GeometryType(ST_Polygonize(geometry)) as geom 
 from line_layer_2d
 where feature_id=148;
 -- Problem lösen durch INSERT-Anweisung:
 -- Die Geometrie wird um die SRID ergänzt, dazu noch die weiteren Felder  
 Insert into polyg_layer_2d (filename, layer, geometry) 
-select filename, layer, ST_BuildArea(ST_AddPoint(geometry, ST_StartPoint(geometry))) 
+select filename, layer, ST_Polygonize(geometry) 
 from line_layer_2d
 where feature_id=148;
 -- Kontrolle & Info ergänzen:
