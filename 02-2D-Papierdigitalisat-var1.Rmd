@@ -272,9 +272,11 @@ Schraffuren kodieren oft Informationen, sind aber schlecht in ein GIS zu überf�
 <blank line>
 ```
 
-Da dies nicht ganz selbsterklärend ist, eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" und weist dieser mit ssget aus der gesamten Datei mit "x" alle Objekte zu, die der folgende Liste an Parametern entsprechen (*dotted pairs*, d.h. Attributkennziffer . Wert). Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt, wobei der jeweilige Objektname anhand des Zählers ermittelt wird. 
+Da dies nicht ganz selbsterklärend ist, eine knappe Erläuterung: Die erste Zeile definiert die Variable "ss" [^1] und weist dieser mit ssget aus der gesamten Datei mit "x" alle Objekte zu, die der folgende Liste an Parametern entsprechen (*dotted pairs*, d.h. Attributkennziffer . Wert). Im vorliegenden Beispiel sind das also Objekttyp: Schraffur und Layer: Feuer. Wenn die Variable "ss" Inhalt hat wird eine Abfolge (*progn*) von Anweisungen durchgeführt: 1. ein Zähler mit dem Startwert "0" definiert und dann auf alle Elemente der Auswahl "ss" der Befehl "*explode*" ausgeführt, wobei der jeweilige Objektname anhand des Zählers ermittelt wird. 
 
-Der vorangehende Abschnitt kann auch zum auflösen von Blöcken verwendet werden. Dazu muss "hatch" durch "insert" ersetzt werde. Beachten Sie aber:
+[^1]: Im Internet oft zu finden und vermutlich Abkürzung für *selection set*.
+
+Der vorangehende Abschnitt kann auch zum Auflösen von Blöcken verwendet werden. Dazu muss "hatch" durch "insert" ersetzt werde. Beachten Sie aber:
 
  - Blöcke werden auf den ursprünglichen Layer, also vermutlich "0" aufgelöst.
  - Attribute wie z.B. eine Zählung gehen verloren.

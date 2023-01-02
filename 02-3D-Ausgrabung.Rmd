@@ -53,9 +53,9 @@ Drop table if exists text_layer_3d_attr;
 
 # Einführung
 
-Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist der CAD-Plan einer Ausgrabung für ein Landesdenkmalamtüber insgesamt drei Ausgrabungsphasen mit einem Personalwechsel bei der Ausgrabungsleitung und der Grabungstechnik [^1].
+Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Ausgang ist der CAD-Plan einer Ausgrabung für ein Landesdenkmalamt über insgesamt drei Ausgrabungsphasen mit einem Personalwechsel bei der Ausgrabungsleitung und der Grabungstechnik [^1]. Der dargestellte Weg ist einer von vielen möglichen Wegen.
 
-[^1]: Genehmigung des Amtes und der Ausgräbering noch erbitten.
+[^1]: Genehmigung des Amtes und der Ausgräberin noch erbitten.
 
 **Anmerkungen** 
 
@@ -78,7 +78,7 @@ Ziel ist die Überführung von Ausgrabungsplänen aus CAD-Dateien in ein GIS. Au
 
 AutoCAD ist eine sehr komplexe Software und Ausgrabungen können eine komplexe Struktur annehmen, die es zu dokumentieren gilt. Erwarten Sie nicht, dass die notwendige Kompetenz beim Erstellen der digitalen Daten stets vorhanden war, auch der Autor (Chr. Rinne) ist hier nur Autodidakt. 
 
-Rechnen Sie mit Fehlern im originalen Datenbestand und einer ggf. nicht optimalen Struktur oder erwarten Sie nicht die von Ihnen bevorzugte Struktur. Korrektur von Fehler und Anpassungen der Struktur erfolgen sicher am besten im originalen Arbeitsumfeld, also CAD.
+Rechnen Sie mit Fehlern im originalen Datenbestand und einer ggf. nicht optimalen Struktur oder erwarten Sie auch nicht die von Ihnen bevorzugte Struktur. Korrektur von Fehler und Anpassungen der Struktur erfolgen sicher am besten im originalen Arbeitsumfeld, also CAD.
 
 Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
@@ -89,11 +89,12 @@ Neben AutoCAD gibt es teils kostengünstigere Alternativen, u.a.:
 
 ## AutoCAD Quelldatei (dxf)
 
-Es handelt sich um einen mehrperiodigen Siedlungs- und Bestattungsplatz. Untersucht wurden gut 8.300 m² mit 589 Befunden, überwiegend dder Bronzezeit (316), 11 eindeutig neolithischen Befunden, darunter ein doppeltes Grabensystem, 260 nicht weiter datierten oder allgemein urgeschichtlichen und zwei neuzeitlichen Befunden. Zu dem CAD Plan liegen für jede Ausgrabung eine Datenbank (MS Access) mit weiteren Informationen vor. Diese Daten können nach der Aufarbeitung des CAD Planes mit den dann eindeutig benannten Befunden verbunden werden. Dies ist aber nicht Teil dieses Skriptes. 
+Es handelt sich um einen mehrperiodigen Siedlungs- und Bestattungsplatz. Untersucht wurden gut 8.300 m² mit 589 Befunden, überwiegend der Bronzezeit (316), 11 eindeutig neolithischen Befunden, darunter ein doppeltes Grabensystem, 260 nicht weiter datierten oder allgemein urgeschichtlichen und zwei neuzeitlichen Befunden. Zu dem CAD Plan liegen für jede Ausgrabung eine Datenbank (MS Access) mit weiteren Informationen vor. Diese Daten können nach der Aufarbeitung des CAD Planes mit den dann eindeutig benannten Befunden verbunden werden. Dies ist aber nicht Teil dieses Skriptes. 
 
 ![Abb. 1 CAD-Datei Jacob-Uffrecgt-Straße in AutoCAD](./img/03_JUff_cad_overview.png)
 
-Die Zeichnung enthält 171 Polylinien (2D), 33 Kreise (2D), 263 Absatztexte (MText), 361 Linien (3D), 239 Schraffuren, 427 Blockreferenzen, 810 Polylinien (3D), 497 einfache Texte und 369 Punkte (3D). In dieser Liste fallen vor allem zwei Objektypen auf, die Kreise und der Absatztext. Die Kreise wurden für einige Befunde verwendet und liegen als flache Geometrie auf einer sinnvollen Höhe. Der Absatztext wurde bei einer Maßnahme für die Befundnummern verwendet. Da es sich um keine "normale" Geometrie handelt und nur die Textbox aber nicht der Text einen Lagebezug zu den Koordinaten der Grabung hat muss dies noch in AutoCAD aufgelöst werden.
+Die Zeichnung enthält 171 Polylinien (2D), 33 Kreise (2D), 263 Absatztexte (MText), 361 Linien (3D), 239 Schraffuren, 427 Blockreferenzen, 810 Polylinien (3D), 497 einfache Texte und 369 Punkte (3D). In dieser Liste fallen vor allem zwei Objektypen auf, die Kreise und der Absatztext. Die Kreise wurden für einige Befunde verwendet und liegen als flache Geometrie auf einer sinnvollen Höhe. Der Absatztext wurde bei einer Maßnahme für die Befundnummern verwendet. Da es sich um keine "normale" Geometrie handelt und nur die Textbox aber nicht der Text einen Lagebezug zu den Koordinaten der Grabung hat muss dies noch in AutoCAD aufgelöst werden. 
+Ebenfalls interessant, auch mit Blick auf die Umsetzung in SpatiaLite, sind  als 2D-Polylinien mit Erhebung vorliegende Befunde. Nutzen Sie ```_qselect``` mit den Optionen Objekttyp: Polylinie und der Eigenschaft Layer=Befund, um diese pauschal auszuwählen und mit einer Farbvorgabe, z.B. Magenta, deutlich hervorzuheben.  
 
 ```{r 'Table 1 List of layers in the dwg.', echo=FALSE}
 tab01<-read.table("./data-raw/JUff_layer.tab", header = TRUE, sep = "\t", dec = ",")
@@ -106,62 +107,114 @@ if (knitr::is_html_output()) {
 }
 ```
 
-Eine weiter Kontrolle ergibt:
+Eine weitere Kontrolle ergibt:
 
 - Die Anzahl der Layer ist überschaubar, eine Trennung nach den Grabungsflächen ist nicht erfolgt, die Namen sind leider nicht ganz stringent, vor allem die Befundnummern sind mehrfach vertreten.
-- Einige Namen verweisen auf konkrete Objekte und ensprechen damit nicht der allgemeinen Nomenklatur. 
-- Keine weiteren BKS definiert, die Koordinaten lassen ein GKB Zone 4 vermuten (das Elipsoidmodell ergibt sich daraus aber nicht).
+- Einige Namen verweisen auf konkrete Objekte und entsprechen damit nicht der scheinbar allgemein angewendeten Nomenklatur. 
+- Es sind keine weiteren BKS (Benutzerkoordinatensysteme) definiert, die Koordinaten lassen ein GKB Zone 4 vermuten (das Elipsoidmodell ergibt sich daraus aber nicht).
 - Die Einheit ist erwartbar in Millimeter statt den verwendeten Meter.
-- Zahlreiche Befundlinien sind nicht geschlossen, auf dem Befundlayer liegen auch Kreise. 
+- Zahlreiche Befundlinien sind nicht geschlossen, auf dem Befundlayer liegen auch Kreise.
+- Die Befundnummern sind über die einzelnen Ausgrabungen nicht fortlaufend vergeben, es gibt somit doppelte Befundnummern in der nördlichen und südlichen Fläche. 
 - Die Ansicht von der Seite offenbart das größte Problem. Vielfach laufen Polygone von der realen Höhe auf 0 runter.  Daneben sind aber auch in der Grabung mehrere Höhenbereiche der Objekte mit einzelnen Verbindungslinien zu erkennen. Falsche Prismenhöhe beim Messen?
 
 Es ist vor allem dieses letzte Problem, das bei der nachfolgenden Aufarbeitung besonders betrachtet werden soll. 
 
 *Wichtig* Der MText wird weder von SpatiaLite noch von QGIS beim Import der DXF-Datei erkannt. Der Export dieser Objekte in AutoCAD über "Extras > Datenextraktion" ist möglich, der Inhalt wird aber auf den Ursprung der Textbox bezogen und die ggf. mehrzeiligen Texte werden als ein Textfeld hieran angehängt wodurch sich jede Zeile in Abhängigkeit der Texthöhe zunehmend von der Koordinate entfernt. Es empfiehlt sich, MText mit dem Befehl ```ursprung (_explode)``` in einfachen Text aufzulösen. Damit wird er auch beim Import der DXF-Datei je Zeile als Text erkannt und dem Einfügepunkt, meist der linke Ursprung der Basislinie, zugewiesen.
 
-Um MText pauschal in Text umzuwandeln selektieren sie diesen pauschal mit ```qselect```, Anwenden auf: Ganze Zeichnung, Objekttyp: MText, Eigenschaft: Farbe = VonLayer, In neuen Auswahlsatz einfügen und [OK]. Danach den Befehl ```ursprung``` für die ausgewählten Objekte eingeben und ausführen. Da unter Umständen MText nicht die Farbe des Layers gehabt haben kann sollten Sie erneut alles Markieren und im Fenster der Eigenschaften (``eigenschaften```) im oberen drop-down die Anzahl der vorhandenen Objekttypen auf MText kontrollieren.
-
+Um MText pauschal in Text umzuwandeln selektieren sie diesen pauschal mit ```qselect```, Anwenden auf: Ganze Zeichnung, Objekttyp: MText, Eigenschaft: Farbe = VonLayer, "In neuen Auswahlsatz einfügen" und [OK]. Danach den Befehl ```ursprung``` für die ausgewählten Objekte eingeben und ausführen. Da unter Umständen MText nicht die Farbe des Layers gehabt haben kann sollten Sie erneut alles Markieren und im Fenster der Eigenschaften (``eigenschaften```) im oberen drop-down die Anzahl der vorhandenen Objekttypen auf MText kontrollieren.
 
 ## SpatiaLite GUI
 
 Nach dem Start der GUI bitte "Menu > Create a new (empty) SQLite DB" ausführen. In diese wird die dxf-Datei mit der gesamten Ausgrabung importiert: "Menu > Advanced > Import DXF drawings". Im Fenster zum Import bitte folgende Angaben: (x) Import selected DXF drawing file only, SRID: 31467, [v] Append to already existing tables, Dimensions: (x) authomatic 2D/3D, (x) mixed layers, Special Rings handling (x) none. Diese Angaben beziehen sich auf den aktuellen Import und müssen ggf. angepasst werden. Die Option 'mixed layers' trennt nur die Typen (Punkt, Linie Polygon, Text), die Layer werden als Attribut (Spalte) angelegt. Die Alternative trennt erst die Layer und dann nach Typen, erstellt also das x-Fache der vorhandenen CAD-Layer als Tabellen.
 
-Als Ergebnis sind folgende Tabellen überwiegend mit den Spalten feature_id, filename, layer und geometry als auch und eine *view* (gespeicherte Abfrage) vorhanden:
+Als Ergebnis sind folgende Tabellen mit den Spalten *feature_id*, *filename*, *layer* und *geometry* vorhanden:
 
 - hatch_layer_2d
 - hatch_layer_2d_pattern
 - line_layer_3d
-- line_layer_3d_attr
-- line_layer_3d_attr_view
 - point_layer_3d
-- polyg_layer_3d_attr
-- polyg_layer_3d_attr_view
-- polyg_layer_2d
+- polyg_layer_3d
 - text_layer_3d
 
 ### Datenkontrolle
 
-Prüfen Sie die jeweils resultierende Geometrie, vor allem ob MULTI-Typen vorliegen, z.B. MULTIPOLYGON. Das ist hier nicht der Fall und damit können Teilbefunde nicht zu einem kombinierten Objekt verschmolzen werden. Bei Bedarf lautet die Funktion in SpatiaLite: [CastToMulti](http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.0.html#cast). An dieser Stelle ein schnelle Kontrolle des Datenbestandes durch eine Aufstellung der Layer in jeder Tabelle.
+Visualisieren Sie den Inhalt der Geometrietabellen in QGIS. Die Option "Map preview" im Kontextmenü zu jeder Geometriespalte der Tabellen in SpatiaLite ist oft hilfreich, bietet hier aber weniger Möglichkeiten. 
+
+Ergänzend wird in SpatiaLite für jede Tabelle eine zusammenfassende Übersicht der Daten generiert. Diese zeigt die jeweils vorhandene Geometrie, z.B. MULTI-Typen für die Kombination von Teilbefunde.
+
+Die Tabelle **hatch_layer_2d** scheint ein vollständiges(?) Abbild der dokumentierten Befunde. Sie resultiert aus den Schraffuren zur Datierung oder Befundansprache, die auf jeweils eigenen Layern in AutoCAD abgelegt wurden. Diese Informationen sind nett, sollten aber als Sachinformationen später aus den vorhandenen Datenbanken an die Befundnummern angehängt werden (join). Einige Geometrien scheinen fehlerhaft (NULL).
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Select layer, GeometryType(geometry) as geomtype, Count(*) as n 
 from hatch_layer_2d
-group by 1, 2
+group by 1, 2;
 ```
 
-Die Syntax gruppiert auf die erste und zweite Spalte, den Layernamen und die Abfrage des Geometrietyps, dazu liefert sie die Anzahl der Einträge. Warum einige Geometrien nicht vorliegen (NULL) kann ich nicht sagen. Im vorliegenden Fall handelt es sich durchgängig um eine Kreuzschraffur (ANSI37) für Tiergänge oder andere Störungen. 
+Die Tabelle **hatch_layer_2d_pattern** sieht ähnlich aus, liefert aber nur zwei Geometrien, die überwiegenden Fälle sind NULL. 
+
+In AutoCAD bestehen **Füllungen** (Pattern) wie bei vielen Grafikprogrammen aus zwei Elemente: der Kontur (Umgrenzung) und der Füllung. AutoCAD verwendet überwiegend Schraffuren, teils komplexe Kombinationen aus Linien, Polygonen und Punkten. Daneben gibt es die Füllung "solid", die eher eine Ausnahme darstellt. Erstere finden sich in der Tabelle mit mit der Ergänzung "_pattern". Schraffuren sind in AutoCAD Flächen und damit 2D. 
+
+- Die vorgenannten Tabellen sind damit weitgehend wertlos, denn die 2D Geometrie ist ohne z-Wert unzureichend und die Sachinformationen stehen in der zugehörigen Datenbank des Projektes. 
+
+Die Tabelle **line_layer_3d** ist von zentraler Bedeutung und zeigt außer der nicht stringenten Benennung der Layer keine Auffälligkeiten. Allerdings irritiert der mangelhafte Bezug der Profile zu den Layern (00Profil, Profile). Zudem sind offenbar zahlreiche Befunde nur als Linien erkannt worden. Die Profile zeigen "Ansichtshaken" auf der jeweils entnommenen Seite des Befundes.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 select layer, GeometryType(geometry) as geomtype, Count(*) as n 
-from line_layer_2d
-group by 1, 2
+from line_layer_3d
+group by 1, 2;
 ```
 
-Diese Abfrage liefert im vorliegenden Fall zwei Problemgruppen: Pl01_Steine hat elf und PL02_Befunde hat zwei Linienobjekte. In allen Fällen sollten das aber Polygone sein. Die Korrektur erfolgt am besten in CAD: beim Layer Steine ist es ein Stein der aus zehn einzelnen Linien besteht und beim Layer Befunde sind es zwei nicht geschlossene Befunde. Die Grabungsgrenzen sind im vorliegenden Fall  aufgrund der Vorgaben heterogen sowohl als Polygon als auch als Linie vorhanden. Hier ist die jeweilige Fragestellung relevant: z.B. Fläche bemessen oder 1:1-Abbildung des Papiers.
+Die Tabelle **point_layer_3d** enthält 3D-Punkte, die durch die Layerbezeichnungen teilweise von Bedeutung sind. Überwiegend sind es Höhenwerte der einzelnen Befunde die aber keinen Planumsbezug oder benannten Befundbezuge haben und bei den vorliegenden Z-Polygonen für die Befunde überflüssig sind. Von interesse erscheinen die Verweise auf Funde (Keramik, Knochen) und Messbildnägel für die Photgrammetrie. 
 
-Die Tabelle text_layer_3d_attr und die Sicht (*view*) text_layer_3d_attr_view liefern in diesem Fall keine erhellenden Informationen und können wie hatch_layer_2d gelöscht werden.
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select layer, GeometryType(geometry) as geomtype, Count(*) as n 
+from point_layer_3d
+group by 1, 2;
+```
 
-# Datenbereinigung
+Die Tabelle **polyg_layer_3d** ist von zentraler Bedeutung. Es handelt sich überwiegend um Befunde und einige Flächengrenzen auf unterschiedlichen Layern. Irritierend ist ein Profilpolygon und ein als Polygon dokumentiertes Keramikfargment. 
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select layer, GeometryType(geometry) as geomtype, Count(*) as n 
+from polyg_layer_3d
+group by 1, 2;
+```
+
+Die Tabelle **text_layer_3d** hat zu den oben genannten Spalten noch *label* und *rotation*. Es sind überwiegend die Befund- und Profilnummern, dazu einige weitere Beschriftungen. (Die im CAD-Plan als Block mit Attribute gesetzten Niv-Werte sind nicht dabei und müssen über die Datenextraktion und CSV-Liste wieder importiert werden.)
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select layer, GeometryType(geometry) as geomtype, Count(*) as n 
+from text_layer_3d
+group by 1, 2;
+```
+
+### Datenbereinigung
+
+Zur Datenbereinigung werden in allen Geometriespalten pauschal ungültige Geometrien repariert.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+Update line_layer_3d
+ set geometry = SanitizeGeometry(geometry);
+Update point_layer_3d
+ set geometry = SanitizeGeometry(geometry);
+Update polyg_layer_3d
+ set geometry = SanitizeGeometry(geometry);
+Update text_layer_3d
+ set geometry = SanitizeGeometry(geometry);
+Commit;
+```
+
+In der Tabelle **line_layer_3d**  bleiben vier Fälle, die nur aus zwei identischen Punkten bestehen. Diese sind schlicht wertlos und werden gelöscht.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+select *, IsValidReason(geometry), st_AsText(geometry) from line_layer_3d
+where isvalid(geometry) <> 1;
+Delete from line_layer_3d
+where isvalid(geometry) <> 1;
+Commit;
+```
 
 ## Höhenfehler
 
