@@ -447,11 +447,9 @@ Der **Import der CSV-Tabelle** mit Daten ist über das entsprechende Icon einfac
 -- Geometriespalte ergänzen
 Select AddGeometryColumn('block_attr_3d', 'geometry', 31467, 'POINTZ', 'XYZ');
 -- Geometriespalte mit dem WKT aus den Koordinaten füllen.
-Update block_attr_3d as a
-set geometry = (select ST_GeomFromText(('POINTZ(' || "Position_X" || ' ' || 
-"Position_Y" || ' ' || "Position_Z" || ')'), 31467)
- from block_attr_3d
- where a.PK_UID = PK_UID)
+Update block_attr_3d
+  set geometry = ST_GeomFromText('POINTZ(' || "Position_X" || ' ' || 
+  "Position_Y" || ' ' || "Position_Z" || ')', 31467 );
 ```
 
 ![Abb. 2 Das fertige Projekt in QGIS](./img/02_2d_var2_02_qgisprojekt.png)

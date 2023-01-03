@@ -3,17 +3,17 @@ title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -138,9 +138,7 @@ Als Ergebnis sind folgende Tabellen mit den Spalten *feature_id*, *filename*, *l
 
 ### Datenkontrolle
 
-Visualisieren Sie den Inhalt der Geometrietabellen in QGIS. Die Option "Map preview" im Kontextmenü zu jeder Geometriespalte der Tabellen in SpatiaLite ist oft hilfreich, bietet hier aber weniger Möglichkeiten. 
-
-Ergänzend wird in SpatiaLite für jede Tabelle eine zusammenfassende Übersicht der Daten generiert. Diese zeigt die jeweils vorhandene Geometrie, z.B. MULTI-Typen für die Kombination von Teilbefunde.
+Visualisieren Sie den Inhalt der Geometrietabellen in QGIS. Die Option "Map preview" im Kontextmenü zu jeder Geometriespalte der Tabellen in SpatiaLite ist oft hilfreich, bietet aber weniger Möglichkeiten. Ergänzend wird in SpatiaLite für jede Tabelle eine zusammenfassende Übersicht der Daten generiert. 
 
 Die Tabelle **hatch_layer_2d** scheint ein vollständiges(?) Abbild der dokumentierten Befunde. Sie resultiert aus den Schraffuren zur Datierung oder Befundansprache, die auf jeweils eigenen Layern in AutoCAD abgelegt wurden. Diese Informationen sind nett, sollten aber als Sachinformationen später aus den vorhandenen Datenbanken an die Befundnummern angehängt werden (join). Einige Geometrien scheinen fehlerhaft (NULL).
 
@@ -152,11 +150,11 @@ group by 1, 2;
 
 Die Tabelle **hatch_layer_2d_pattern** sieht ähnlich aus, liefert aber nur zwei Geometrien, die überwiegenden Fälle sind NULL. 
 
-In AutoCAD bestehen **Füllungen** (Pattern) wie bei vielen Grafikprogrammen aus zwei Elemente: der Kontur (Umgrenzung) und der Füllung. AutoCAD verwendet überwiegend Schraffuren, teils komplexe Kombinationen aus Linien, Polygonen und Punkten. Daneben gibt es die Füllung "solid", die eher eine Ausnahme darstellt. Erstere finden sich in der Tabelle mit mit der Ergänzung "_pattern". Schraffuren sind in AutoCAD Flächen und damit 2D. 
+In AutoCAD bestehen **Füllungen** (Pattern) wie bei vielen Grafikprogrammen aus zwei Elemente: der Kontur (Umgrenzung) und der Füllung. AutoCAD verwendet überwiegend Schraffuren, teils komplexe Kombinationen aus Linien, Polygonen und Punkten. Daneben gibt es die Füllung "solid", die eher eine Ausnahme darstellt. Erstere finden sich in der Tabelle mit mit der Ergänzung "_pattern"- letztere in der Tabelle ohne die Extension. Schraffuren sind in AutoCAD Flächen und damit sind diese Geometrien auch hier 2D. 
 
 - Die vorgenannten Tabellen sind damit weitgehend wertlos, denn die 2D Geometrie ist ohne z-Wert unzureichend und die Sachinformationen stehen in der zugehörigen Datenbank des Projektes. 
 
-Die Tabelle **line_layer_3d** ist von zentraler Bedeutung und zeigt außer der nicht stringenten Benennung der Layer keine Auffälligkeiten. Allerdings irritiert der mangelhafte Bezug der Profile zu den Layern (00Profil, Profile). Zudem sind offenbar zahlreiche Befunde nur als Linien erkannt worden. Die Profile zeigen "Ansichtshaken" auf der jeweils entnommenen Seite des Befundes.
+Die Tabelle **line_layer_3d** ist von zentraler Bedeutung und zeigt außer der nicht stringenten Benennung der Layer keine Auffälligkeiten. Allerdings irritiert der mangelhafte Bezug der Profile zu den Layern (00Profil, Profile). Zudem sind offenbar zahlreiche Befunde nur als Linien erkannt worden. Die Profile weisen mit "Ansichtshaken" auf die jeweils dokumentierten Seite hin.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 select layer, GeometryType(geometry) as geomtype, Count(*) as n 
@@ -164,7 +162,7 @@ from line_layer_3d
 group by 1, 2;
 ```
 
-Die Tabelle **point_layer_3d** enthält 3D-Punkte, die durch die Layerbezeichnungen teilweise von Bedeutung sind. Überwiegend sind es Höhenwerte der einzelnen Befunde die aber keinen Planumsbezug oder benannten Befundbezuge haben und bei den vorliegenden Z-Polygonen für die Befunde überflüssig sind. Von interesse erscheinen die Verweise auf Funde (Keramik, Knochen) und Messbildnägel für die Photgrammetrie. 
+Die Tabelle **point_layer_3d** enthält 3D-Punkte, die durch die Layerbezeichnungen teilweise von Bedeutung sind. Überwiegend sind es Höhenwerte der einzelnen Befunde die aber keinen Planumsbezug oder benannten Befundbezuge haben und mit den vorliegenden z-Polygonen für die Befunde überflüssig sind. Von interesse erscheinen die Verweise auf Funde (Keramik, Knochen) und Messbildnägel für die Photgrammetrie. 
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 select layer, GeometryType(geometry) as geomtype, Count(*) as n 
@@ -172,7 +170,7 @@ from point_layer_3d
 group by 1, 2;
 ```
 
-Die Tabelle **polyg_layer_3d** ist von zentraler Bedeutung. Es handelt sich überwiegend um Befunde und einige Flächengrenzen auf unterschiedlichen Layern. Irritierend ist ein Profilpolygon und ein als Polygon dokumentiertes Keramikfargment. 
+Die Tabelle **polyg_layer_3d** ist von zentraler Bedeutung. Es handelt sich überwiegend um Befunde und einige Flächengrenzen auf unterschiedlichen Layern. Irritierend ist ein Profilpolygon und ein als Polygon dokumentiertes Keramikfargment. Bei ersterem  handelt es sich um zwei, gemeinsam als Kasten ausgehobene Profile zu zwei dicht beieinander liegenden Befunden.  
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 select layer, GeometryType(geometry) as geomtype, Count(*) as n 
@@ -180,7 +178,7 @@ from polyg_layer_3d
 group by 1, 2;
 ```
 
-Die Tabelle **text_layer_3d** hat zu den oben genannten Spalten noch *label* und *rotation*. Es sind überwiegend die Befund- und Profilnummern, dazu einige weitere Beschriftungen. (Die im CAD-Plan als Block mit Attribute gesetzten Niv-Werte sind nicht dabei und müssen über die Datenextraktion und CSV-Liste wieder importiert werden.)
+Die Tabelle **text_layer_3d** hat zu den oben genannten Spalten noch *label* und *rotation*. Es sind überwiegend die Befund- und Profilnummern, dazu einige weitere Beschriftungen. Die im CAD-Plan als Block mit Attribute gesetzten Niv-Werte sind nicht dabei und müssen über die Datenextraktion und die resultierende CSV-Liste wieder importiert werden.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 select layer, GeometryType(geometry) as geomtype, Count(*) as n 
@@ -188,7 +186,7 @@ from text_layer_3d
 group by 1, 2;
 ```
 
-### Datenbereinigung
+### Topologie prüfen und reparieren
 
 Zur Datenbereinigung werden in allen Geometriespalten pauschal ungültige Geometrien repariert.
 
@@ -216,9 +214,143 @@ where isvalid(geometry) <> 1;
 Commit;
 ```
 
-## Höhenfehler
+In der Tabelle *polyg_layer_3d* sind zwei sich selbst überschneidende Gemoetrien. Die visuelle Prüfung zeigt erst kein offensichtliches Problem, in einem Fall ist bei sehr kleinem Maßstab eine Kreuzung der Kontur durch sehr dicht gesetzte Punkte zu erkennen. Bei der Einmessung wurde das Prisma entweder zu stark geneigt, wodurch der Messpunkt hinter den vorangehenden berechnet wurde oder aber der Endpunkt der Linie wurde über versehentlich den Startpunkt hinaus gemessen. Beides kann leicht passieren und ist hier sicher nicht die Ausnahme. 
 
-Problem: Einzelne Punkte von Linien oder Polygone wurden an anderen Objekten gefangen oder von Hand gezeichnet, damit haben diese erkennbar einen falschen Z-Wert. Im Norden grenzen einige Befunde an die Schnittgrenze, die Befundlinien des Planum 1 fangen die Schnittgrenze auf dem Planum 0. Oder die Ansichtshaken der Profile sind von Hand gezeichnet und fallen dasmit auf die Höhe Null.
+Eine schnelle, zielorientierte Lösung scheint angebracht. Zuerst wird die Funktion st_makevalid() angewendet. Diese erstellt bei Überschneidungen aber ein Multipolygon und damit hier nicht zulässige Geometrien die auszuschließen sind. 
+
+Das Polygon wird mit der Funktion ST_SimplifyPreserveTopology() unter Wahrung der Topologie und einer relativ geringen Toleranz von 0.05 m vereinfacht. Da hierbei aber alle Punkte des Polygons berücksichtigt werden weicht die Fläche doch erkennbar vom Original ab und es werden zudem mit der Funktion ST_Snap() die Knoten und die Kanten erneut an das original mit der selben Toleranz gefangen. Im Ergebnis liegt ein valides z-Polygon sehr großer Ähnlichkeit vor. 
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+-- Probleme lokalisieren
+select *, IsValidReason(geometry) from polyg_layer_3d
+  where IsValid(geometry) <> 1;
+-- Die erste einfache Problemlösung
+Update polyg_layer_3d
+  set geometry = ST_MakeValid(geometry)
+  where IsValid(geometry) <> 1 and CastToSingle(ST_MakeValid(geometry)) not null;
+-- Die zweite einfache Problemlösung im Vergleich
+select st_area(ST_SimplifyPreserveTopology(geometry,0.05)) as simple_area, 
+st_area(geometry) as orig_area, 
+st_area(st_snap(ST_SimplifyPreserveTopology(geometry,0.05),geometry,0.05)) as snap_simple_area,
+geometrytype(st_snap(ST_SimplifyPreserveTopology(geometry,0.05),geometry,0.05)) as snap_simple_type,
+st_isvalid(st_snap(ST_SimplifyPreserveTopology(geometry,0.05),geometry,0.05)) as snap_simple_valid
+from polyg_layer_3d
+where isvalid(geometry) <> 1;
+Commit;
+```
+
+| simple_area | orig_area | snap_simple_area | snap_simple_type | snap_simple_valid |
+| ---------:| ---------:| ---------:|:---------:| ---------:|
+| 1.699869 | 1.729045 | 1.729621 | POLYGON Z | 1 |
+
+Das verbleibende ungültige Polygon wird mit dieser letzten Methode repariert.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Update polyg_layer_3d
+  set geometry = st_snap(ST_SimplifyPreserveTopology(geometry,0.05),geometry,0.05)
+  where isvalid(geometry) <> 1;
+```
+
+Alternativ könnten die aus ST_MakeValid() resultierenden Multipolygone aufgelöst, verglichen als auch bewertet und resultierend nur das repräsentative zum Original aufgehoben werden. Der Aufwand ist hier deutlich größer. Für die hier aufgezeigte Problemlösung muss aber:
+- das eingangs dargestellte Problem kleiner Überschneidungen vorliegen und
+- eine dem Maßstab als auch der Dimension angemessene Toleranz gewählt werden. 
+
+### Höhenfehler korrigieren
+
+Problem: Einzelne Punkte von Linien oder Polygone wurden an anderen Objekten gefangen oder von Hand gezeichnet, damit haben diese erkennbar einen falschen Z-Wert. Zum Beispiel:
+
+- Die als Blöcke mit Attribut um die nördliche Grabungsfläche auf der Obrfläche eingemessenen Niv-Werte liegen bei 52,3 m im Westen und zwischen 53,0 und 53,4 m im Norden und Osten. Befundgrenzen sollten demnach mindestens 0,3 m unter diesen Werten liegen. 
+- Im Norden grenzen einige Befunde an die Schnittgrenze und die Befundlinien des Planum 1 fangen die Schnittgrenze auf dem Planum 0. 
+- Die Ansichtshaken der Profile sind von Hand gezeichnet und fallen damit auf die Höhe Null.
+- Einige Befunde scheinen von Hand entlang gemessene Befundgrenzen konstruiert worden zu sein wobei die ohne Objektfang erstellen Knoten die Höhe 0 haben. 
+
+Daneben kann auch das grundsätzliche Problem einer falschen Prismenhöhe vorliegen. Daran schließt sich die Frage nach dem ursprünglich, richtigen z-Wert an, die aber nur näherungsweise beantwortet werden kann. Mögliche, annähernd korrekte Werte sind die nicht bei 0 liegenden z-Werte vor und hinter dem Knoten, der Durchschnitt oder Median der z-Wert des Polygons ohne die eindeutig "falschen" Werte oder der z-Wert des nächsten gemessenen Höhenwertes oder oder oder. Dazu kommt noch das Problem großen Polygonen wir der Grabungsfläche, die bei größzügiger Vermessung durch aus einen deutlichen Höhenunterschied von Punkt zu Punkt aufweisen können.  
+
+#### Tabelle Blöcke mit Attribut \newline
+
+Importieren wir deshalb als erstes die in AutoCAD exportierten Blöcke mit Attribut (Datenextraktion). Über das Menü "Menu > Advanced > Load CSV/TXT" rufen Sie das Importfenster auf, wählen die Datei "JUff_blockattr.csv", Table name: block_layer_3d, [x] First line contains ..., Text separator: [o] none, Column seperaor: [o] Comma, Decimal separator: Point und Charset Encoding: UTF-8 (ganz am Ende). Die Spalte sind Namen (Blockname), HÖHE (Attribut), Layer (Layer des Blocks), Position_X/Y/Z (Koordinaten des Blocks) und Nummer (Attribut). Nachfolgend werden zuerst eine Geometrie aus den Koordinaten und dann ein Überblick über die vorhandenen z-Werte erstellt.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+Select AddGeometryColumn('block_layer_3d', 'geometry', 31468, 'POINTZ', 'XYZ');
+Update block_layer_3d 
+  set geometry = ST_GeomFromText('POINTZ(' || "Position_X" || ' ' || 
+  "Position_Y" || ' ' || "Position_Z" || ')', 31468);
+select max(HÖHE) as max_H, min(HÖHE) as min_H, max(Position_Z) as max_Z,
+  sum(Position_Z) / count(Position_Z) as mean_Z, min(Position_Z) as min_Z
+from block_layer_3d group by name;
+Commit;
+```
+
+| Name | max_H | min_H | max_Z | mean_Z | min_Z |
+| ----- |---:| ---:| ---:| ----:| ---:|
+| HP_FERTIG_OBERKANTE | 53.690 | 50.540 | 53.832 | 51.724 | 0.126 |
+| HP_OHNE_SYMBOL | 51.450 | 51.450 | 51.590 | 51.590 | 51.590 |
+| MESSPUNKT |  |  | 52.920 | 52.507 | 50.977 |
+
+Insgesamt scheinen die Messwerte plausibel zwischen 51 m und 54 m über NN zu liegen, doch auch hier gibt es bei den gemessenen z-Werten offensichtlich falsche Werte nahe 0.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select max(st_maxz(geometry)) as max_maxz,
+max(st_minz(geometry)) as max_minz, 
+sum(st_maxz(geometry) - st_minz(geometry)) / count (*) as mean_diff,
+min(st_maxz(geometry) - st_minz(geometry)) as min_diff,
+max(st_maxz(geometry) - st_minz(geometry)) as max_diff
+from line_layer_3d;
+```
+
+| max_maxz | max_minz | mean_diff | min_diff | max_diff |
+| --------:| --------:| ---------:| --------:| --------:|
+| 105.604000 | 105.604000 | 3.323629 | 0.000000 | 52.732000 |
+
+Die selbe Abfrage, nur für die Tabelle polyg_layer_3d.
+
+| max_maxz | max_minz | mean_diff | min_diff | max_diff |
+| --------:| --------:| ---------:| --------:| --------:|
+| 53.757953 | 53.026502 | 0.703233 | 0.000000 | 51.742000 |
+
+Beginnen wir mit der Tabelle **block_layer_3d** und vertrauen wir darauf, dass die dargestellten, sichtbaren Höhenwerte visuell geprüft wurden und damit korrekt sein sollten. Wir verschaffen uns einen Überblick, indem wir die Differenz zwischen dargestelltem und gemessenen Wert (HÖHE - Position_Z) in Klassen von 1 cm zusammenfassen.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select count(*) as n, round((HÖHE - Position_Z)*100, 0) as diff_cm 
+from block_layer_3d 
+where abs(HÖHE - Position_Z) > 0.01
+group by round((HÖHE - Position_Z)*100, 0);
+```
+
+| diff_cm | -152 | -114 | -21 | -18 | -17 | -16 | -15 | -14 | -13 | -9 | 22 | 5157 |
+| :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| n | 1 | 1 | 1 | 1 | 1 | 1 | 2 | 283 | 7 | 1 | 1 | 1 |
+
+Das transponierte Ergebnis zeigt sehr zahlreiche Abweichungen um -14 cm und nur vereinzelt über +/- 15 cm hinaus. Die Häufung bei -14 cm weist auf ein strukturelles Problem, für das aber keine Lösung unmittelbar auf der Hand liegt. Auch wenn die Differenz bis 15 cm eigentlich nicht vorhanden sein sollte wird diese nachfolgend ignoriert und nur die um mehr als +/- 14 cm abweichenden Messwerte mit den Angaben aus HÖHE korrigiert 
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Update block_layer_3d 
+  set geometry = ST_GeomFromText('POINTZ(' || "Position_X" || ' ' || 
+  "Position_Y" || ' ' || "HÖHE" || ')', 31468)
+  where abs(HÖHE - Position_Z) > 0.14;
+```
+
+Die z-Werte aller Punkte liegen nun in einem plausiblen Wertebereich: Min.: 50.677, Max.: 53.829, Mittelw.: 51.981.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select min(ST_Z(geometry)) as min_z, max(ST_Z(geometry)) as max_z, 
+  sum(ST_Z(geometry))/count(*) as mean_z
+  from block_layer_3d;
+```
+
+#### Tabelle line_layer_3d \newline
+
+Es folgt die Tabelle **line_layer_3d**. 
+
+
+
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select st_maxz(geometry), st_npoints(geometry), st_astext(geometry) from line_layer_3d
+where st_minz(geometry) = 0 and st_maxz(geometry) <> 0;
+```
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 select st_maxz(geometry), st_npoints(geometry), st_astext(geometry) from line_layer_3d
@@ -234,7 +366,7 @@ where  d > 0.3
 order by d desc; 
 ```
 
-Liefert 86 Linien mit ptentiellem Z-Wert-Fehler.
+Liefert 86 Linien mit potentiellem Z-Wert-Fehler.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 begin transaction;
