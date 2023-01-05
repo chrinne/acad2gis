@@ -402,7 +402,7 @@ Select CreateSpatialIndex('polyg_layer_2d', 'geometry');
 -- Rückgabewert 1 wenn ok, dennoch zur Kontrolle.
 Select Count(*), GeometryType(geometry), Srid(geometry), CoordDimension(geometry)
 from polyg_layer_2d
-group by 2, 3, 4
+group by 2, 3, 4;
 ```
 
 Zur Kontrolle und falls nur einfache Polygone gewünscht sein sollten:

@@ -342,78 +342,140 @@ select min(ST_Z(geometry)) as min_z, max(ST_Z(geometry)) as max_z,
 
 #### Tabelle line_layer_3d \newline
 
-Es folgt die Tabelle **line_layer_3d**. 
-
-
-
+Wie bei den Punkten ist die grundlegende Frage: Was erachten wir als falsch und wollen es korrigieren?  Zwei Parameter lassen sich leicht berechnen: die Differenz innerhalb der Linie und die Differenz bezogen auf die Länge der Linie.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-select st_maxz(geometry), st_npoints(geometry), st_astext(geometry) from line_layer_3d
-where st_minz(geometry) = 0 and st_maxz(geometry) <> 0;
-```
-
-```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-select st_maxz(geometry), st_npoints(geometry), st_astext(geometry) from line_layer_3d
-where st_minz(geometry) = 0 and st_maxz(geometry) <> 0;
-```
-Das liefer aber keine Einträge. Warum? MinZ ist nicht 0, sondern nahe 0. Also Schwellwert der Differenz definieren. Da nur potentielle Problemfälle gefunden werden sollen eher offensiv: hier 0.3 m.
-
-```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-select st_maxz(geometry) - st_minz(geometry) as d, 
-	st_minz(geometry), st_maxz(geometry), st_npoints(geometry) 
+select feature_id, layer, st_maxz(geometry) - st_minz(geometry) as d, 
+	st_minz(geometry) as min_z, st_maxz(geometry) as max_z, 
+	st_npoints(geometry) as n_points, st_length(geometry) as length,
+	st_length(geometry) / (st_maxz(geometry) - st_minz(geometry)) as l_d
 from line_layer_3d
-where  d > 0.3
-order by d desc; 
+where d > 0.3 or l_d < 15
+order by l_d desc;
 ```
 
-Liefert 86 Linien mit potentiellem Z-Wert-Fehler.
+Am Anfang der Liste stehen lange Linien bei denen ein Höhenunterschied zwischen 0.3 und 0.6 m durchaus plausibel ist.  So ab einem Wert von kleiner als 15 für den Quotienten aus Länge zu Höhendifferenz wird es fraglich (feature_id 52) und bei dem Quotienten unter 13 (feature_id 14) vermutlich falsch. Für die Bearbeitung ergeben sich zwei Optionen: 1. Sie Schreiben die feature_id's der Linien in einen Filter und bearbeiten jede Linie in QGIS von Hand. 2. Sie verändern die Werte halbautomatisch und kontrollieren. 
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-begin transaction;
-drop table if exists line_layer_3d_err;
-create temp table line_layer_3d_err as
-select feature_id, geometry
+select group_concat(feature_id)
 from line_layer_3d
-where  st_maxz(geometry) - st_minz(geometry) > 0.3;
-select RecoverGeometryColumn('line_layer_3d_err', 'geometry', 31468, 'linestring', 'XYZ');
-commit;
+where st_maxz(geometry) - st_minz(geometry) > 0.3 or 
+ st_length(geometry) / (st_maxz(geometry) - st_minz(geometry)) < 15;
 ```
 
-feature_id = 616 hat 4 Punkte
+Zuerst der Weg der reinen Handarbeit: Kopieren Sie zuerst die Liste der feature_id's der vorangehenden Abfrage in ein Protokoll Ihrer Änderungen am Datenbestand. Übertragen Sie die Filterbedingung nach ```where``` mit *copy 'n paste*  in [Abfrage erstellen] unter dem Register Quelle bei den Eigenschaften des Layers in QGIS. Danach sehen Sie nur noch die potentiell falschen Linien und können diese editieren. Wählen Sie im Editiermodus das Stützpunktwerkzeug und markieren Sie mit einem rechten Mausklick eine Linie. Danach sollte sich ein Fenster mit der tabellarischen Liste der Koordinaten für jeden Knoten dieser Linie öffnen wo Sie dann die Wert verändern können.
+
+Im vorliegenden Fall sind vor allem die vielen kurzen Profilinien die Masse des Problems. Sortiert nach dem kleinsten z-Wert fallen die ersten 55 Linien mit einem Wert weit unter 50 deutlich aus dem Rahmen des plausiblen. Ich verändere nachfolgend die Filterbedingung dahingehend, wobei aber mindestens ein plausibler z-Wert von über 50 m über NN vorliegen soll und schreibe alle betroffenen Linien in eine temporäre Tabelle. Je nach Anforderung können Sie ergänzend auch auf die Länge der Linie st_length(geometry), die Anzal der Knoten st_npoints(geometry) oder auch weitere Eigenschaften filtern.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-begin transaction;
-drop table if exists line_err_multipoints;
-CREATE TABLE line_err_multipoints AS 
-select feature_id as line_feature_id, st_dissolvepoints(geometry) as geometry
-from line_layer_3d
-where  st_maxz(geometry) - st_minz(geometry) > 0.3;
+Begin transaction;
+Drop table if exists line_err;
+Create table line_err as
+  select * from line_layer_3d
+  where st_minz(geometry) < 50 and st_maxz(geometry) > 50;
+Select RecoverGeometryColumn('line_err', 'geometry', 31468, 'linestringz', 'xyz');
+Commit;
+```
 
-Select RecoverGeometryColumn('line_err_multipoints', 'geometry', 31468, 'multipoint', 'XYZ');
+Danach werden die Linien in Multipoints aufgelöst und diese wiederum in eine Tabelle mit fortlaufenden Koordinaten. Für den letzten Schritt wird ein join zur Tabelle [ElementaryGeometries](https://www.gaia-gis.it/fossil/libspatialite/wiki?name=VirtualElementary) erstellt. Hierbei werden jedes mal die Geometrien in der datenbank registriert und abschließend eine Tabelle zur visuellen Kontrolle erstellt.
 
-drop table if exists line_err_points;
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+-- Create table with multipoints per line
+Drop table if exists line_err_multipoints;
+Create table line_err_multipoints as 
+  select feature_id as line_feature_id, layer, st_dissolvepoints(geometry) as geometry
+  from line_err;
+Select RecoverGeometryColumn('line_err_multipoints', 'geometry', 31468, 'multipointz', 'xyz');
+-- Create table of individual points with a join  to ElementaryGeometries 
+Drop table if exists line_err_points;
 create table line_err_points as 
-SELECT lmp.rowid, lmp.line_feature_id, e.item_no, 
+SELECT lmp.line_feature_id, lmp.rowid, e.item_no, e.geometry,
   ST_x(e.geometry) as x, ST_y(e.geometry) as y, ST_Z(e.geometry) AS z
 FROM line_err_multipoints AS lmp
 JOIN ElementaryGeometries AS e ON (e.f_table_name = 'line_err_multipoints'
 AND e.origin_rowid = lmp.rowid);
+Select RecoverGeometryColumn('line_err_points', 'geometry', 31468, 'pointz', 'xyz');
+select * from line_err_points;
 commit;
-
 ```
 
-Jetzt noch über die Liste der Punkte laufen und falsche z-Werte ersetzen.
-mean z-wert berechnen sum(z)/count(z) group by line_feature_id
-case item_no = 0 and abs(z-wert - mean(z-wert)) > 0.3 dann item_no + 1
-Anderen Z-Wert nachschlagen über item_no - 1 oder oder item_no + 1
-Dann mittels aggregate, group_concat und 
-polygonfromtext('POLYGON Z(' || group_concat(x || ' ' || y || ' ' || z, ', ') ||)', '|| srid)
-
+Die Tabelle enthält die ursprungliche *feature_id* der Linie, die *rowid* des ursprünglichen Multipoints und einen bei 0 beginnenden Zähler für jeden Knoten einer Linie. Die nächsten Schritt sind von der Überlegung her einfach: Ersetze jeden nicht plausiblen z-Wert durch den Mittelwert der plausiblen z-Werte der zugehörigen Linie. Schreibe danach die Punkteometrie neu und aggregiere die Punkte für jede ehemaligen Linie wieder zu einer Linie. Vergessen Sie nicht ggf. die Tabelle der genuin falschen z-Werte oder mindestens die *feature_id* der editierten Linien in einem Protokoll zu speichern (s.o.).
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+Drop table if exists line_err_points_new;
+-- Create a new table with new z-values
+Create table line_err_points_new as
+-- counter for rowid and point_item, mean z and new z-value, order of case matters
+with recursive point (mean_z, rid, z_new, item) as (
+-- only to initialise the counters
+ select 
+  (select sum(z) / count(z) from line_err_points where rowid = 1 and z > 50 and z < 55) as mean_z, 
+  0 as rid,
+  NULL as z_new,
+  -1 as item 
+ union all
+-- get the values or count + 1 if point_item does not exist 
+ select
+  case when (select z from line_err_points where rowid = rid and item_no = item + 1) not null
+   then mean_z
+   else (select sum(z) / count(z) from line_err_points where rowid = rid + 1 and z > 50 and z < 55)
+   end as mean_z, 
+  case when (select z from line_err_points where rowid = rid and item_no = item + 1) not null
+   then rid
+   else rid + 1
+   end as rid, 
+  case when (select z from line_err_points where rowid = rid and item_no = item + 1) > 50
+   then (select z from line_err_points where rowid = rid and item_no = item + 1)
+   else mean_z
+   end as z_new, 
+  case when (select z from line_err_points where rowid = rid and item_no = item + 1) not null
+   then item + 1
+   else -1
+   end as item 
+ from point
+-- set the limit for the recursion
+  where rid <= (select max(rowid) from line_err_points))
+-- do something
+Select a.rid, b.line_feature_id, b.item_no, a.mean_z, a.z_new, b.z, b.x, b.y from point as a
+ inner join line_err_points as b on a.rid = b.rowid and a.item = b.item_no;
+-- End of create table and now show the content
+Select * from line_err_points_new;
+Commit;
 ```
 
+Kontrollieren Sie in der resultierenden Tabelle stichprobenartig zahlreiche z-Werte. Sollte das alles gut aussehen erstellen wir daraus eine neue Tabelle von Linien der ursprünglichen *feature_id*.
+
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+Drop table if exists line_err_new;
+Create table line_err_new as
+  Select line_feature_id as feature_id, 
+  MakeLine(MakePointZ(x, y, z_new, 31468)) as geometry 
+  from line_err_points_new
+  group by line_feature_id;
+Select RecoverGeometryColumn('line_err_new', 'geometry', 31468, 'linestringz', 'xyz');
+Commit;
 ```
+
+Zwischenergebnis nochmals kontrollieren und dann die alte Geometrie durch die veränderte Geometrie ersetzen.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Update line_layer_3d as a
+set geometry = (select geometry from line_err_new as b 
+  where b.feature_id = a.feature_id)
+where a.feature_id in (select feature_id from line_err_new);  
+```
+
+Filtern Sie danach erneut die Linien mit weiterhin potentiell falschen Höhenwerten und nehmen sie die notwendigen Änderungen von Hand vor. Dies können Sie entweder wie oben dargestellt in QGIS tun (s.o.). Der wesentliche Vorteil, sie sehen die Linien im Kontext und können z.B. bewusst an die Anschlussinie fangen. Oder aber Sie generieren erneut eine Tabelle mit ausgelesenen Korrdinaten je Knoten, editieren diese Tabelle von Hand anstelle der Rekursionsabfrage, archivieren diese Tabelle als Protokoll Ihrer Änderungen und generieren hieraus wie zuvor eine Tabelle neuer Linien. Noch 33 Linien haben eine internen Höhendifferenz von mehr als 30 cm. Nach der Visualisierung in QGIS sind es u.a. einige Befunde an der nördlichen Grabungsgrenze und die Linien des neolithischen Grabensystems.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select group_concat(feature_id)
+from line_layer_3d
+where st_maxz(geometry) - st_minz(geometry) > 0.3;
+```
+
+
 
 # Literatur
