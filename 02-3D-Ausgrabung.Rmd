@@ -231,10 +231,13 @@ Update polyg_layer_3d
   where IsValid(geometry) <> 1 and CastToSingle(ST_MakeValid(geometry)) not null;
 -- Die zweite einfache Problemlösung im Vergleich
 select st_area(ST_SimplifyPreserveTopology(geometry,0.05)) as simple_area, 
-st_area(geometry) as orig_area, 
-st_area(st_snap(ST_SimplifyPreserveTopology(geometry,0.05),geometry,0.05)) as snap_simple_area,
-geometrytype(st_snap(ST_SimplifyPreserveTopology(geometry,0.05),geometry,0.05)) as snap_simple_type,
-st_isvalid(st_snap(ST_SimplifyPreserveTopology(geometry,0.05),geometry,0.05)) as snap_simple_valid
+ st_area(geometry) as orig_area, 
+ st_area(st_snap(ST_SimplifyPreserveTopology(geometry,0.05),geometry,0.05)) 
+   as snap_simple_area,
+ geometrytype(st_snap(ST_SimplifyPreserveTopology(geometry,0.05), geometry,0.05)) 
+   as snap_simple_type,
+ st_isvalid(st_snap(ST_SimplifyPreserveTopology(geometry,0.05), geometry,0.05)) 
+   as snap_simple_valid
 from polyg_layer_3d
 where isvalid(geometry) <> 1;
 Commit;
@@ -386,7 +389,8 @@ Drop table if exists line_err_multipoints;
 Create table line_err_multipoints as 
   select feature_id as line_feature_id, layer, st_dissolvepoints(geometry) as geometry
   from line_err;
-Select RecoverGeometryColumn('line_err_multipoints', 'geometry', 31468, 'multipointz', 'xyz');
+Select RecoverGeometryColumn('line_err_multipoints', 'geometry', 31468, 
+   'multipointz', 'xyz');
 -- Create table of individual points with a join  to ElementaryGeometries 
 Drop table if exists line_err_points;
 create table line_err_points as 
@@ -411,26 +415,32 @@ Create table line_err_points_new as
 with recursive point (mean_z, rid, z_new, item) as (
 -- only to initialise the counters
  select 
-  (select sum(z) / count(z) from line_err_points where rowid = 1 and z > 50 and z < 55) as mean_z, 
+  (select sum(z) / count(z) from line_err_points 
+    where rowid = 1 and z > 50 and z < 55) as mean_z, 
   0 as rid,
   NULL as z_new,
   -1 as item 
  union all
 -- get the values or count + 1 if point_item does not exist 
  select
-  case when (select z from line_err_points where rowid = rid and item_no = item + 1) not null
+  case when (select z from line_err_points 
+               where rowid = rid and item_no = item + 1) not null
    then mean_z
-   else (select sum(z) / count(z) from line_err_points where rowid = rid + 1 and z > 50 and z < 55)
+   else (select sum(z) / count(z) from line_err_points 
+           where rowid = rid + 1 and z > 50 and z < 55)
    end as mean_z, 
-  case when (select z from line_err_points where rowid = rid and item_no = item + 1) not null
+  case when (select z from line_err_points 
+               where rowid = rid and item_no = item + 1) not null
    then rid
    else rid + 1
    end as rid, 
-  case when (select z from line_err_points where rowid = rid and item_no = item + 1) > 50
+  case when (select z from line_err_points 
+               where rowid = rid and item_no = item + 1) > 50
    then (select z from line_err_points where rowid = rid and item_no = item + 1)
    else mean_z
    end as z_new, 
-  case when (select z from line_err_points where rowid = rid and item_no = item + 1) not null
+  case when (select z from line_err_points 
+               where rowid = rid and item_no = item + 1) not null
    then item + 1
    else -1
    end as item 
@@ -438,7 +448,8 @@ with recursive point (mean_z, rid, z_new, item) as (
 -- set the limit for the recursion
   where rid <= (select max(rowid) from line_err_points))
 -- do something
-Select a.rid, b.line_feature_id, b.item_no, a.mean_z, a.z_new, b.z, b.x, b.y from point as a
+Select a.rid, b.line_feature_id, b.item_no, a.mean_z, a.z_new, b.z, b.x, b.y 
+ from point as a
  inner join line_err_points as b on a.rid = b.rowid and a.item = b.item_no;
 -- End of create table and now show the content
 Select * from line_err_points_new;
@@ -475,6 +486,10 @@ select group_concat(feature_id)
 from line_layer_3d
 where st_maxz(geometry) - st_minz(geometry) > 0.3;
 ```
+
+#### Tabelle polyg_layer_3d \newline
+
+Der Prozess wird analog zu den Tabelle der Linien durchgeführt. Entsprechend müssen die Schritte nicht erläutert und nur bedingt kommentiert werden.
 
 
 
