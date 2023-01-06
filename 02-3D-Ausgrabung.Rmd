@@ -345,13 +345,13 @@ select min(ST_Z(geometry)) as min_z, max(ST_Z(geometry)) as max_z,
 
 #### Tabelle line_layer_3d \newline
 
-Wie bei den Punkten ist die grundlegende Frage: Was erachten wir als falsch und wollen es korrigieren?  Zwei Parameter lassen sich leicht berechnen: die Differenz innerhalb der Linie und die Differenz bezogen auf die Länge der Linie.
+Wie bei den Punkten ist die grundlegende Frage: Was erachten wir als falsch und wollen es korrigieren?  Zwei Parameter lassen sich leicht berechnen: die Differenz innerhalb der Linie und der Quotient aus der Differenz und der Länge der Linie.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 select feature_id, layer, st_maxz(geometry) - st_minz(geometry) as d, 
+	st_length(geometry) / (st_maxz(geometry) - st_minz(geometry)) as l_d,
 	st_minz(geometry) as min_z, st_maxz(geometry) as max_z, 
-	st_npoints(geometry) as n_points, st_length(geometry) as length,
-	st_length(geometry) / (st_maxz(geometry) - st_minz(geometry)) as l_d
+	st_npoints(geometry) as n_points, st_length(geometry) as length
 from line_layer_3d
 where d > 0.3 or l_d < 15
 order by l_d desc;
@@ -487,10 +487,187 @@ from line_layer_3d
 where st_maxz(geometry) - st_minz(geometry) > 0.3;
 ```
 
+#### Tabelle point_layer_3d \newline
+
+Die Daten scheinen insgesamt plausibel.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select group_concat(feature_id)
+from line_layer_3d
+where st_maxz(geometry) - st_minz(geometry) > 0.3;
+```
+
+| layer | n | min_z | max_z |
+|------|----:|----:|----:|
+| Höhenpunkte Befunde | 274 | 51.975 | 52.928 |
+| Keramik Pl.1 | 72 | 52.211 | 52.905 |
+| Knochenreste | 2 | 52.344 | 52.505 |
+| Photogrammetriepunkte | 15 | 50.977 | 52.608 |
+| Profilzeichennägel | 5 | 52.033 | 52.368 |
+
 #### Tabelle polyg_layer_3d \newline
 
-Der Prozess wird analog zu den Tabelle der Linien durchgeführt. Entsprechend müssen die Schritte nicht erläutert und nur bedingt kommentiert werden.
+Der Prozess der Höhenkorrektur kann analog zu den Tabelle der Linien durchgeführt werden, wobei die Schritte leicht angepasst werden müssen. Bei der folgenden Abfrage wird nicht die Länge der Linie (*st_length()*) sondern der Umfang verwendet (*st_perimeter()*). Die Abfrage mit den gewähten Parametern, Höhendifferenz über 0,1 m oder weniger als der 30-fache Umfang der Höhendifferenz, ergeben nur 12 potentiell fehlerhafte Befunde. In diesem Fall übertrage ich die Filteranweisung in eine Abfrage der Datenquele bei QGIS. Vor allem, um die  ungewöhnliche Höhe von über 53 m über NN im räumlichen Kontext zu kontrollieren. 
 
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+select feature_id, layer, st_maxz(geometry) - st_minz(geometry) as d, 
+	st_perimeter(geometry) / (st_maxz(geometry) - st_minz(geometry)) as p_d, 
+	st_minz(geometry) as min_z, st_maxz(geometry) as max_z, 
+	st_npoints(geometry) as n_points, st_perimeter(geometry) as p
+from polyg_layer_3d
+where d > 0.10 and p_d < 30
+order by p_d desc;
+```
+
+| feature_id | layer | d | p_d | min_z | max_z | n_points | p |
+|----:|----|----:|----:|----::|----:|----:|----:|
+| 348 | Befunde | 0.112000 | 26.366780 | 51.888000 | 52.000000 | 14 | 2.953079 |
+| 380 | Befunde | 1.411000 | 21.489896 | 51.890000 | 53.301000 | 114 | 30.322244 |
+| 379 | Befunde | 1.381000 | 3.940367 | 51.920000 | 53.301000 | 25 | 5.441646 |
+| 378 | Befunde | 1.361000 | 2.719274 | 51.940000 | 53.301000 | 16 | 3.700932 |
+| 376 | Befunde | 1.369000 | 1.711535 | 51.940000 | 53.309000 | 15 | 2.343091 |
+| 377 | Befunde | 1.350000 | 0.882061 | 51.960000 | 53.310000 | 10 | 1.190782 |
+| 317 | Befunde | 51.670000 | 0.422846 | 0.140000 | 51.810000 | 77 | 21.848455 |
+| 294 | Befunde | 51.571000 | 0.159236 | 0.140000 | 51.711000 | 27 | 8.211957 |
+| 326 | Befunde | 51.742000 | 0.102362 | 0.140000 | 51.882000 | 20 | 5.296406 |
+| 425 | Befunde | 51.567389 | 0.076708 | 0.140000 | 51.707389 | 16 | 3.955609 |
+| 424 | Befunde | 51.201440 | 0.072005 | 0.140000 | 51.341440 | 13 | 3.686785 |
+| 476 | Befunde | 51.227000 | 0.056821 | 0.140000 | 51.367000 | 16 | 2.910747 |
+
+Der erste Befund (*feature_id* 348) zeigt bei der Autopsie keine Auffälligkeit. Der nächste Befund (*feature_id* 380) hat im Vergleich mit den benachbarten Befunden bei Start- und Endpunkt einen plausiblen Höhenwert, die anderen Knoten liegen aber ca. 1,4 m höher. Der selbe Höhenfehler betrifft auch die folgenden vier Befunde aus der unmittelbaren Nachbarschaft. Hier scheint ein  typischer Fehler einer falschen Prismahöhe vorzuliegen. Da insgesamt 175 z-Werte geändert werden müssten verschiebe ich diese Befunde als ganzes um 1,4 nach unten und ändere nur den jeweiligen Start- und Endpunkt von Hand wieder auf die ursprüngliche Höhe.  
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Update polyg_layer_3d
+set geometry = ST_Translate(geometry, 0, 0, -1.4) 
+where feature_id in (376, 377, 378, 379, 380);
+```
+
+#### Tabelle text_layer_3d \newline
+
+Eine Tabelle zu den Höhenwerten offenbart wirklich seltsame z. Werte bei dem ehemaligen Absatztext (M-Text) auf den Layern '00BefundNr' und 'Kabelschacht'. 
+
+select layer, count(*) as n, 
+  min(ST_Z(geometry)) as min_z, max(ST_Z(geometry)) as max_z
+from text_layer_3d group by layer;
+
+
+| layer | n | min_z | max_z |
+|-------|----:|----:|----:|
+| 00BefundNr | 262 | 2950.925 | 3250.135 |
+| 00ProfilNr | 215 | 0.140 | 51.373 |
+| Befundnummern | 279 | 0.140 | 105.955 |
+| Flächengrenzen | 2 | 0.140 | 0.140 |
+| Kabelschacht | 1 | 3108.713 | 3108.713 |
+| Profile | 1 | 0.140 | 0.140 |
+
+Der Import von Text in Spatialite ist Ansich sehr gut und das hier vorliegenede Problem liegt genuin in der AutoCAD-Datei und dem ursprünglichen Absatztext. Normalerweise wird eine Textbox (2D) von einem Punkt aus aufgezogen und der zugehörige Basispunkt ist *a priori* die obere linke Ecke. Wird kein z-Wert übergeben liegt die Textbox auf 0. Wird der Text aufgelöst bekommt jede resultierende Einzelzeile den linken Punkt (Startpunkt) der Grundlinie als Einfügekoordinate (Geometrie-Position: x, y z) mit der Textausrichtung: 0, 0, 0. Wird der Text dann anders ausgerichtet, z.B. rechtsbündig, wird die Einfügekoordiate (Geometrie-Position angepasst und die Koordiaten der alten Geometrie-Position werden unter der Textausrichtung gespeichert.  In der vorliegenden AutoCAD Datei ist dies Beziehung zwischen M-Text, Text und der Textausrichtung nicht nachvollziehbar verändert.
+
+Zwei Optionen in solchen Fällen: 1. Die z-Werte interessieren Sie nicht, weil die räumliche Verknüpfung zwischen Befundnummer und Polygon zweidimensional erfolgt und das Polygon ja eine korrekte Höhe aufweist. 2. Sie exportieren in AutoCAD alle Textzeilen mit beiden Koordinatensystemen analog zu den Blöcken mit Attribut unter verwendung von "Extras > Datenextraktion" in eine CSV-Datei.
+
+Die z-Werte der Texte auf dem Layer 'Befundnummern' sind aUch nicht wirklich vertrauenerweckend, 222 Nummern liegen auf 0.14, 37 auf 53.221 und 11 auf 105.955 m über NN.
+
+#### Konsistenz Prüfung \newline
+
+Wegen der vielen Änderungen aktualisiere ich die interne Statistik und prüfe auch die Geometrien der Tabellen erneut.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+Select UpdateLayerStatistics('block_layer_3d', 'geometry')
+Union all
+Select UpdateLayerStatistics('line_layer_3d', 'geometry')
+Union all
+Select UpdateLayerStatistics('point_layer_3d', 'geometry')
+Union all
+Select UpdateLayerStatistics('polyg_layer_3d', 'geometry')
+Union all
+Select UpdateLayerStatistics('text_layer_3d', 'geometry');
+-- chech geometries
+Select 'block' as tbl, IsValid(Geometry), count(*) from block_layer_3d group by IsValid(Geometry)
+Union all
+Select 'line', IsValid(Geometry), count(*) from line_layer_3d group by IsValid(Geometry)
+Union all
+Select 'point', IsValid(Geometry), count(*) from point_layer_3d group by IsValid(Geometry)
+Union all
+Select 'polyg', IsValid(Geometry), count(*) from polyg_layer_3d group by IsValid(Geometry)
+Union all
+Select 'text', IsValid(Geometry), count(*) from text_layer_3d group by IsValid(Geometry);
+Commit;
+```
+
+### Datenbearbeitung
+
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+
+Commt;
+```
 
 
 # Literatur
