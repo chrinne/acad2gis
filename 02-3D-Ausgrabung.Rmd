@@ -3,17 +3,17 @@ title: "CAD-Dokumentation zu GIS mit SpatiaLite migrieren"
 author: "Christoph Rinne"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    number_sections: true
   pdf_document:
     fig_caption: true
     number_sections: true
     toc: true
     toc_depth: 4
     df_print: kable
-  html_document:
-    toc: true
-    toc_depth: 4
-    toc_float: true
-    number_sections: true
 license: CC-BY-SA 4.0
 header-includes: \renewcommand{\contentsname}{Inhalt} \renewcommand{\figurename}{Abb.}
   \renewcommand{\tablename}{Tab.}
@@ -140,7 +140,7 @@ Als Ergebnis sind folgende Tabellen mit den Spalten *feature_id*, *filename*, *l
 
 Visualisieren Sie den Inhalt der Geometrietabellen in QGIS. Die Option "Map preview" im Kontextmenü zu jeder Geometriespalte der Tabellen in SpatiaLite ist oft hilfreich, bietet aber weniger Möglichkeiten. Ergänzend wird in SpatiaLite für jede Tabelle eine zusammenfassende Übersicht der Daten generiert. 
 
-Die Tabelle **hatch_layer_2d** scheint ein vollständiges(?) Abbild der dokumentierten Befunde. Sie resultiert aus den Schraffuren zur Datierung oder Befundansprache, die auf jeweils eigenen Layern in AutoCAD abgelegt wurden. Diese Informationen sind nett, sollten aber als Sachinformationen später aus den vorhandenen Datenbanken an die Befundnummern angehängt werden (join). Einige Geometrien scheinen fehlerhaft (NULL).
+Die Tabelle **hatch_layer_2d** scheint ein vollständiges(?) Abbild der dokumentierten Befunde. Sie resultiert aus den Schraffuren zur Datierung oder Befundansprache, die auf jeweils eigenen Layern in AutoCAD abgelegt wurden. Diese Informationen sind nett, sollten aber als Sachinformationen später aus den vorhandenen Datenbanken an die Befundnummern angehängt werden (join). Die Geometrie ist ein Multipolygon, einige sind fehlerhaft (NULL).
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Select layer, GeometryType(geometry) as geomtype, Count(*) as n 
@@ -520,19 +520,19 @@ order by p_d desc;
 ```
 
 | feature_id | layer | d | p_d | min_z | max_z | n_points | p |
-|----:|----|----:|----:|----::|----:|----:|----:|
-| 348 | Befunde | 0.112000 | 26.366780 | 51.888000 | 52.000000 | 14 | 2.953079 |
-| 380 | Befunde | 1.411000 | 21.489896 | 51.890000 | 53.301000 | 114 | 30.322244 |
-| 379 | Befunde | 1.381000 | 3.940367 | 51.920000 | 53.301000 | 25 | 5.441646 |
-| 378 | Befunde | 1.361000 | 2.719274 | 51.940000 | 53.301000 | 16 | 3.700932 |
-| 376 | Befunde | 1.369000 | 1.711535 | 51.940000 | 53.309000 | 15 | 2.343091 |
-| 377 | Befunde | 1.350000 | 0.882061 | 51.960000 | 53.310000 | 10 | 1.190782 |
-| 317 | Befunde | 51.670000 | 0.422846 | 0.140000 | 51.810000 | 77 | 21.848455 |
-| 294 | Befunde | 51.571000 | 0.159236 | 0.140000 | 51.711000 | 27 | 8.211957 |
-| 326 | Befunde | 51.742000 | 0.102362 | 0.140000 | 51.882000 | 20 | 5.296406 |
-| 425 | Befunde | 51.567389 | 0.076708 | 0.140000 | 51.707389 | 16 | 3.955609 |
-| 424 | Befunde | 51.201440 | 0.072005 | 0.140000 | 51.341440 | 13 | 3.686785 |
-| 476 | Befunde | 51.227000 | 0.056821 | 0.140000 | 51.367000 | 16 | 2.910747 |
+|----:|----|----:|----:|----:|----:|----:|----:|
+| 348 | Befunde | 0.112 | 26.366 | 51.888 | 52.000 | 14 | 2.953 |
+| 380 | Befunde | 1.411 | 21.489 | 51.890 | 53.301 | 114 | 30.322 |
+| 379 | Befunde | 1.381 | 3.940 | 51.920 | 53.301 | 25 | 5.441 |
+| 378 | Befunde | 1.361 | 2.719 | 51.940 | 53.301 | 16 | 3.700 |
+| 376 | Befunde | 1.369 | 1.711 | 51.940 | 53.309 | 15 | 2.343 |
+| 377 | Befunde | 1.350 | 0.882 | 51.960 | 53.310 | 10 | 1.190 |
+| 317 | Befunde | 51.670 | 0.422 | 0.140 | 51.810 | 77 | 21.848 |
+| 294 | Befunde | 51.571 | 0.159 | 0.140 | 51.711 | 27 | 8.211 |
+| 326 | Befunde | 51.742 | 0.102 | 0.140 | 51.882 | 20 | 5.296 |
+| 425 | Befunde | 51.567 | 0.076 | 0.140 | 51.707 | 16 | 3.955 |
+| 424 | Befunde | 51.201 | 0.072 | 0.140 | 51.341 | 13 | 3.686 |
+| 476 | Befunde | 51.227 | 0.056 | 0.140 | 51.367 | 16 | 2.910 |
 
 Der erste Befund (*feature_id* 348) zeigt bei der Autopsie keine Auffälligkeit. Der nächste Befund (*feature_id* 380) hat im Vergleich mit den benachbarten Befunden bei Start- und Endpunkt einen plausiblen Höhenwert, die anderen Knoten liegen aber ca. 1,4 m höher. Der selbe Höhenfehler betrifft auch die folgenden vier Befunde aus der unmittelbaren Nachbarschaft. Hier scheint ein  typischer Fehler einer falschen Prismahöhe vorzuliegen. Da insgesamt 175 z-Werte geändert werden müssten verschiebe ich diese Befunde als ganzes um 1,4 nach unten und ändere nur den jeweiligen Start- und Endpunkt von Hand wieder auf die ursprüngliche Höhe.  
 
@@ -566,7 +566,7 @@ Zwei Optionen in solchen Fällen: 1. Die z-Werte interessieren Sie nicht, weil d
 
 Die z-Werte der Texte auf dem Layer 'Befundnummern' sind aUch nicht wirklich vertrauenerweckend, 222 Nummern liegen auf 0.14, 37 auf 53.221 und 11 auf 105.955 m über NN.
 
-#### Konsistenz Prüfung \newline
+#### Aufräumen und Konsistenz Prüfung \newline
 
 Wegen der vielen Änderungen aktualisiere ich die interne Statistik und prüfe auch die Geometrien der Tabellen erneut.
 
@@ -584,36 +584,86 @@ Select UpdateLayerStatistics('text_layer_3d', 'geometry');
 -- chech geometries
 Select 'block' as tbl, IsValid(Geometry), count(*) from block_layer_3d group by IsValid(Geometry)
 Union all
-Select 'line', IsValid(Geometry), count(*) from line_layer_3d group by IsValid(Geometry)
+Select 'line', IsValid(Geometry), count(*) from line_layer_3d 
+  group by IsValid(Geometry)
 Union all
-Select 'point', IsValid(Geometry), count(*) from point_layer_3d group by IsValid(Geometry)
+Select 'point', IsValid(Geometry), count(*) from point_layer_3d 
+  group by IsValid(Geometry)
 Union all
-Select 'polyg', IsValid(Geometry), count(*) from polyg_layer_3d group by IsValid(Geometry)
+Select 'polyg', IsValid(Geometry), count(*) from polyg_layer_3d 
+  group by IsValid(Geometry)
 Union all
-Select 'text', IsValid(Geometry), count(*) from text_layer_3d group by IsValid(Geometry);
+Select 'text', IsValid(Geometry), count(*) from text_layer_3d 
+  group by IsValid(Geometry);
 Commit;
 ```
 
 ### Datenbearbeitung
 
+Datenaufbereitung erfolgt analog der Darstellung zur Dokumentation des Fundplatzes  Wittelsberg Fpl. 7. Im  Unterschied hierzu muss wegen der heterogenen Layernamen deutlich mehr Informationsbereinigung betrieben werden. Die Struktur der Geometrietabellen wird entsprechend *a priori* um die Spalten 'number (integer)' und 'info (text)' erweitert.
+
+#### Tabelle line_layer_3d \newline
+
+Ergänzen wir die Spalten und schaffen wir uns erstmal einen Überblick über die Layer und den jeweils vorhandenen Linien.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
+ALTER TABLE "line_layer_3d" ADD COLUMN number integer;
+ALTER TABLE "line_layer_3d" ADD COLUMN info text;
 
-Commt;
+select group_concat(l, ', ') 
+from (select layer || ': ' || count(*) as l, 'g' as g 
+  from line_layer_3d
+  group by layer) 
+group by g;
+Commit;
 ```
+
+00Befund: 18, 00Profil: 537, Befunde: 77, Befunde Planum 2: 3, Befundnummern: 9, GUK: 16, Keramik Pl.1: 1, Pl1-Keramik: 6, Pl2-Befunde: 3, Pl2-Keramik: 2, Pl2-Knochen: 2, Profile: 198, Umrandung Hausgrundriss: 14
+
+'Profile' befinden sich im Norden, '00Profile' im Süden der Ausgrabung. Beides kann problemlos unter Profile geführt werden. Das Gleiche gilt für 'Befunde' und '00Befund'. Der Layer 'Befundnummern' zeigt zahlreiche Linien aus zwei Punkten die aufgrund ihrer Lage zu den Polygonen als Profillinien zu werten sind. 'Befunde Planum 2' können 'Pl2-Befunde' zugewiesen werden. Die insgesamt 11 Linien der Fundlayer mit 'Keramik' oder 'Knochen' sind sehr kleine Kreise von max. 4 cm Durchmesser, diese werden mit dem jeweiligen Zentroid und dem z-Wert des (2D) Kreises an die Tabelle point_layer_3d angefügt. Die Linien von 'Umrandung Hausgrundriss' sind zahlreiche Pfosten, deren Deutung der Tabelle hatch_layer_2D zugewiesen wird. Hierbei muss die 3D-Linie zu einem 2D Multipolygon umgewandelt werden. Da die Befunde als Polygon vorliegen können sie gelöscht werden.  
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
-
+Update line_layer_3d set layer = 'Profile' where layer = '00Profil'; 
+Update line_layer_3d set layer = 'Befunde' where layer = '00Befund'; 
+Update line_layer_3d set layer = 'Profile' where layer = 'Befundnummern'; 
+Update line_layer_3d set layer = 'Pl2-Befunde' where layer = 'Befunde Planum 2'; 
+insert into point_layer_3d (filename, layer, geometry)
+select filename, layer, 
+  MakePointZ(ST_X(ST_Centroid(geometry)), ST_Y(ST_Centroid(geometry)), 
+     ST_MaxZ(geometry), 31468)
+  from line_layer_3d where layer like '%Keramik%' or layer like '%Knochen%';
+Delete from line_layer_3d 
+  where layer like '%Keramik%' or layer like '%Knochen%';
+Insert into hatch_layer_2d (filename, layer, geometry)
+  select filename, layer, CastToMulti(CastToXY(ST_MakePolygon(geometry))) as geometry
+  from line_layer_3d 
+  where layer = 'Umrandung Hausgrundriss';
+Delete from line_layer_3d 
+  where layer = 'Umrandung Hausgrundriss';
 Commt;
 ```
+
+Die Linien der Layer Befunde und GUK (Grabungsgrenze Unkterkante?) müssen in Polygone konvertiert und in die Tabelle polyg_layer_3D übertragen werden. Beginne wir mit 'GUK', hier liegen 16 Einzellinien vor, die in zwei Polygone aggregiert werden müssen, deshalb ST_Polygonize(). Es resultiert ein Multipolygon mit zwei Polygonen. Der Pragmatische Weg ist diese gezielt abzufragen und anzüfugen.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
-
+select GeometryType(ST_Polygonize(geometry)) as typ,
+  NumGeometries(ST_Polygonize(geometry)) as n
+  from line_layer_3d
+  where layer = 'GUK';
+Insert into polyg_layer_3d (filename, layer, geometry)
+  select filename, layer, GeometryN(ST_Polygonize(geometry), 1) 
+  from line_layer_3d where layer = 'GUK';
+Insert into polyg_layer_3d (filename, layer, geometry)
+  select filename, layer, GeometryN(ST_Polygonize(geometry), 2) 
+  from line_layer_3d where layer = 'GUK';
+Delete from line_layer_3d where layer = 'GUK';
 Commt;
 ```
+
+Weiter mit den einfachen Befundlinien, z.B. den Kreisen.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
