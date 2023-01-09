@@ -313,7 +313,7 @@ Die selbe Abfrage, nur für die Tabelle polyg_layer_3d.
 | --------:| --------:| ---------:| --------:| --------:|
 | 53.757953 | 53.026502 | 0.703233 | 0.000000 | 51.742000 |
 
-Beginnen wir mit der Tabelle **block_layer_3d** und vertrauen wir darauf, dass die dargestellten, sichtbaren Höhenwerte visuell geprüft wurden und damit korrekt sein sollten. Wir verschaffen uns einen Überblick, indem wir die Differenz zwischen dargestelltem und gemessenen Wert (HÖHE - Position_Z) in Klassen von 1 cm zusammenfassen.
+Beginnen wir mit der Tabelle **block_layer_3d** und vertrauen wir darauf, dass die dargestellten, sichtbaren Höhenwerte visuell geprüft wurden und damit korrekt sein sollten. Wir verschaffen uns einen Überblick, indem wir die Differenz zwischen dargestelltem und gemessenem Wert (HÖHE - Position_Z) in Klassen von 1 cm zusammenfassen.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 select count(*) as n, round((HÖHE - Position_Z)*100, 0) as diff_cm 
@@ -368,7 +368,7 @@ where st_maxz(geometry) - st_minz(geometry) > 0.3 or
 
 Zuerst der Weg der reinen Handarbeit: Kopieren Sie zuerst die Liste der feature_id's der vorangehenden Abfrage in ein Protokoll Ihrer Änderungen am Datenbestand. Übertragen Sie die Filterbedingung nach ```where``` mit *copy 'n paste*  in [Abfrage erstellen] unter dem Register Quelle bei den Eigenschaften des Layers in QGIS. Danach sehen Sie nur noch die potentiell falschen Linien und können diese editieren. Wählen Sie im Editiermodus das Stützpunktwerkzeug und markieren Sie mit einem rechten Mausklick eine Linie. Danach sollte sich ein Fenster mit der tabellarischen Liste der Koordinaten für jeden Knoten dieser Linie öffnen wo Sie dann die Wert verändern können.
 
-Im vorliegenden Fall sind vor allem die vielen kurzen Profilinien die Masse des Problems. Sortiert nach dem kleinsten z-Wert fallen die ersten 55 Linien mit einem Wert weit unter 50 deutlich aus dem Rahmen des plausiblen. Ich verändere nachfolgend die Filterbedingung dahingehend, wobei aber mindestens ein plausibler z-Wert von über 50 m über NN vorliegen soll und schreibe alle betroffenen Linien in eine temporäre Tabelle. Je nach Anforderung können Sie ergänzend auch auf die Länge der Linie st_length(geometry), die Anzal der Knoten st_npoints(geometry) oder auch weitere Eigenschaften filtern.
+Im vorliegenden Fall sind vor allem die vielen kurzen Profilinien die Masse des Problems. Sortiert nach dem kleinsten z-Wert fallen die ersten 55 Linien mit einem Wert weit unter 50 deutlich aus dem Rahmen des plausiblen. Ich verändere nachfolgend die Filterbedingung dahingehend, wobei aber mindestens ein plausibler z-Wert von über 50 m über NN vorliegen soll und schreibe alle betroffenen Linien in eine temporäre Tabelle. Je nach Anforderung können Sie ergänzend auch auf die Länge der Linie st_length(geometry), die Anzahl der Knoten st_npoints(geometry) oder auch weitere Eigenschaften filtern.
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
@@ -404,7 +404,7 @@ select * from line_err_points;
 commit;
 ```
 
-Die Tabelle enthält die ursprungliche *feature_id* der Linie, die *rowid* des ursprünglichen Multipoints und einen bei 0 beginnenden Zähler für jeden Knoten einer Linie. Die nächsten Schritt sind von der Überlegung her einfach: Ersetze jeden nicht plausiblen z-Wert durch den Mittelwert der plausiblen z-Werte der zugehörigen Linie. Schreibe danach die Punkteometrie neu und aggregiere die Punkte für jede ehemaligen Linie wieder zu einer Linie. Vergessen Sie nicht ggf. die Tabelle der genuin falschen z-Werte oder mindestens die *feature_id* der editierten Linien in einem Protokoll zu speichern (s.o.).
+Die Tabelle enthält die ursprungliche *feature_id* der Linie, die *rowid* des ursprünglichen Multipoints und einen bei 0 beginnenden Zähler für jeden Knoten einer Linie. Die nächsten Schritte sind von der Überlegung her einfach: Ersetze jeden nicht plausiblen z-Wert durch den Mittelwert der plausiblen z-Werte der zugehörigen Linie. Schreibe danach die Punkteometrie neu und aggregiere die Punkte für jede ehemaligen Linie wieder zu einer Linie. Vergessen Sie nicht ggf. die Tabelle der genuin falschen z-Werte oder mindestens die *feature_id* der editierten Linien in einem Protokoll zu speichern (s.o.).
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
@@ -544,7 +544,7 @@ where feature_id in (376, 377, 378, 379, 380);
 
 #### Tabelle text_layer_3d \newline
 
-Eine Tabelle zu den Höhenwerten offenbart wirklich seltsame z. Werte bei dem ehemaligen Absatztext (M-Text) auf den Layern '00BefundNr' und 'Kabelschacht'. 
+Eine Tabelle zu den Höhenwerten offenbart wirklich seltsame z-Werte bei dem ehemaligen Absatztext (M-Text) auf den Layern '00BefundNr' und 'Kabelschacht'. 
 
 select layer, count(*) as n, 
   min(ST_Z(geometry)) as min_z, max(ST_Z(geometry)) as max_z
@@ -582,7 +582,8 @@ Select UpdateLayerStatistics('polyg_layer_3d', 'geometry')
 Union all
 Select UpdateLayerStatistics('text_layer_3d', 'geometry');
 -- chech geometries
-Select 'block' as tbl, IsValid(Geometry), count(*) from block_layer_3d group by IsValid(Geometry)
+Select 'block' as tbl, IsValid(Geometry), count(*) 
+  from block_layer_3d group by IsValid(Geometry)
 Union all
 Select 'line', IsValid(Geometry), count(*) from line_layer_3d 
   group by IsValid(Geometry)
@@ -621,16 +622,15 @@ Commit;
 
 00Befund: 18, 00Profil: 537, Befunde: 77, Befunde Planum 2: 3, Befundnummern: 9, GUK: 16, Keramik Pl.1: 1, Pl1-Keramik: 6, Pl2-Befunde: 3, Pl2-Keramik: 2, Pl2-Knochen: 2, Profile: 198, Umrandung Hausgrundriss: 14
 
-'Profile' befinden sich im Norden, '00Profile' im Süden der Ausgrabung. Beides kann problemlos unter Profile geführt werden. Das Gleiche gilt für 'Befunde' und '00Befund'. Der Layer 'Befundnummern' zeigt zahlreiche Linien aus zwei Punkten die aufgrund ihrer Lage zu den Polygonen als Profillinien zu werten sind. 'Befunde Planum 2' können 'Pl2-Befunde' zugewiesen werden. Die insgesamt 11 Linien der Fundlayer mit 'Keramik' oder 'Knochen' sind sehr kleine Kreise von max. 4 cm Durchmesser, diese werden mit dem jeweiligen Zentroid und dem z-Wert des (2D) Kreises an die Tabelle point_layer_3d angefügt. Die Linien von 'Umrandung Hausgrundriss' sind zahlreiche Pfosten, deren Deutung der Tabelle hatch_layer_2D zugewiesen wird. Hierbei muss die 3D-Linie zu einem 2D Multipolygon umgewandelt werden. Da die Befunde als Polygon vorliegen können sie gelöscht werden.  
+'Profile' befinden sich im Norden, '00Profile' im Süden der Ausgrabung. Beides kann problemlos unter Profile geführt werden. Das Gleiche gilt für 'Befunde' und '00Befund'. Der Layer 'Befundnummern' zeigt zahlreiche Linien aus zwei Punkten bei denen es sich um Verweislinien für weit ausgestellte Befundnummern handelt. 'Befunde Planum 2' können 'Pl2-Befunde' zugewiesen werden. Die insgesamt 11 Linien der Fundlayer mit 'Keramik' oder 'Knochen' sind sehr kleine Kreise von max. 4 cm Durchmesser, diese werden mit dem jeweiligen Zentroid und dem z-Wert des (2D) Kreises an die Tabelle point_layer_3d angefügt. Die Linien von 'Umrandung Hausgrundriss' sind zahlreiche Pfosten, deren Deutung der Tabelle hatch_layer_2D zugewiesen wird. Hierbei muss die 3D-Linie zu einem 2D Multipolygon umgewandelt werden. Da die Befunde als Polygon bereits vorliegen können sie gelöscht werden.  
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
 Update line_layer_3d set layer = 'Profile' where layer = '00Profil'; 
 Update line_layer_3d set layer = 'Befunde' where layer = '00Befund'; 
-Update line_layer_3d set layer = 'Profile' where layer = 'Befundnummern'; 
 Update line_layer_3d set layer = 'Pl2-Befunde' where layer = 'Befunde Planum 2'; 
 insert into point_layer_3d (filename, layer, geometry)
-select filename, layer, 
+  select filename, layer, 
   MakePointZ(ST_X(ST_Centroid(geometry)), ST_Y(ST_Centroid(geometry)), 
      ST_MaxZ(geometry), 31468)
   from line_layer_3d where layer like '%Keramik%' or layer like '%Knochen%';
@@ -642,7 +642,7 @@ Insert into hatch_layer_2d (filename, layer, geometry)
   where layer = 'Umrandung Hausgrundriss';
 Delete from line_layer_3d 
   where layer = 'Umrandung Hausgrundriss';
-Commt;
+Commit;
 ```
 
 Die Linien der Layer Befunde und GUK (Grabungsgrenze Unkterkante?) müssen in Polygone konvertiert und in die Tabelle polyg_layer_3D übertragen werden. Beginne wir mit 'GUK', hier liegen 16 Einzellinien vor, die in zwei Polygone aggregiert werden müssen, deshalb ST_Polygonize(). Es resultiert ein Multipolygon mit zwei Polygonen. Der Pragmatische Weg ist diese gezielt abzufragen und anzüfugen.
@@ -660,63 +660,171 @@ Insert into polyg_layer_3d (filename, layer, geometry)
   select filename, layer, GeometryN(ST_Polygonize(geometry), 2) 
   from line_layer_3d where layer = 'GUK';
 Delete from line_layer_3d where layer = 'GUK';
-Commt;
+Commit;
 ```
 
-Weiter mit den einfachen Befundlinien, z.B. den Kreisen.
+Zahlreiche weitere Befunde liegen aus diversen Gründen nur als Linien vor. Einige davon könnten wir als Polygone aus hatch_layer_2d kopieren, dann aber ohne einen Höhenwert.Inm vorliegenden Fall sind die Linien im GIS auch leicht verschoben, was mir auch schon bei den Polygonen aus der Schraffur aufgefallen war. Ich vermute hier Projektionsproblem. Beginnen wir mit dem offensichtlich einfachsten Problem, den Kreisen, bzw. allen geschlossenen Polygonen, die auf Anhieb ein Polygon ergeben sollten. Dies sind 27, deren feature_id für eine visuelle Kontrolle in QGIS mit einer Abfrage 'layer in (1, 2, .., n)' direkt in einen Vektor geschrieben werden. Es folgt die Anfügeabfrage und die Löschabfrage für die erfolgreich konvertierten Linien. Die Kreise haben leider einen erkennbar falschen Höhenwert, da die Erhebung aus AutoCAD nicht übernommen wurde. Dies wird später anhand der Befundnummern aus block_layer_3d korrigiert.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+-- Was kann direkt ein Polygon werden?
+select group_concat(feature_id, ', ') from line_layer_3d
+where isvalid(ST_BuildArea(geometry)) = 1
+-- Polygone anfügen
+Insert into polyg_layer_3d (filename, layer, geometry)
+ select filename, layer, ST_BuildArea(geometry) as geometry from line_layer_3d
+ where layer like '%Befund%' and isvalid(ST_BuildArea(geometry)) = 1;
+-- Zugehörige Linien löschen
+Delete from line_layer_3d
+ where layer like '%Befund%' and isvalid(ST_BuildArea(geometry)) = 1;
+Commit;
+```
+
+Es verbleiben etliche Befunde, die entlang einer Grabungsgrenze, an am Profil auf Planum 2 oder als Konstruierte Befunde im Planum  geschlossen werden können. Dies können wir erstmal pauschal angehen und bei Bedarf im Nachgang für einen exakten Verlauf an der Grabungsgrenze oder dem Profil Knoten von Hand ergänzen (z.B. *feature_id* 779). Das Problem löse ich "von Hand" durch eine Liste der betroffenen *feature_id*'s. 
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+Insert into polyg_layer_3d (filename, layer, geometry)
+  select filename, layer, 
+     ST_BuildArea(ST_AddPoint(geometry, ST_StartPoint(geometry))) as geometry 
+  from line_layer_3d
+  where feature_id in (2, 3, 7, 8, 10, 11, 15, 559, 560, 561, 777, 778, 779, 786, 789, 
+  790, 791, 792, 793, 794, 800, 801, 802, 803);
+Delete from line_layer_3d
+  where feature_id in (2, 3, 7, 8, 10, 11, 15, 559, 560, 561, 777, 778, 779, 786, 789, 
+  790, 791, 792, 793, 794, 800, 801, 802, 803);
+Commit;
+```
+
+Nach er visuellen Kontrolle der verbleibenden Linien liegen noch drei Befunde aus aus einzelnen Linien vor und die beiden langen Gräben. Für alle Befunde wird abschließend mit *st_polygonize()* ein Polygon gebildet. Da diese Funktion aggregiert alles, kann also auch für mehr als zwei Linien eingesetzt werden, schreibt aber im ersten Fall die drei erwünschten Polygone in ein Multipolygon. Anstatt nachträglich zu trennen gehen wir das individuell an.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+Insert into polyg_layer_3d (filename, layer, geometry)
+  select filename, layer, st_geometryN(st_polygonize(geometry),1)
+  from line_layer_3d
+  where feature_id in (798,799);
+Insert into polyg_layer_3d (filename, layer, geometry)
+  select filename, layer, st_geometryN(st_polygonize(geometry),1)
+  from line_layer_3d
+  where feature_id in (788, 796);
+Insert into polyg_layer_3d (filename, layer, geometry)
+  select filename, layer, st_geometryN(st_polygonize(geometry),1)
+  from line_layer_3d
+  where feature_id in (795, 787);
+Delete from line_layer_3d
+  where feature_id in (798,799, 788, 796, 795, 787);
+Commit;
+```
+
+Bei den beiden Gräben, bzw. den drei dokumentierten Grabenabschnitten müssen die fehlenden Linien ergänzt werden. Danach ist die Kombination der Teillinien mit *ST_Polygonize()*  zu einem Multipolygon und das Anfügen der Teilpolygone möglich.
+
+*Wichtig**: Die Felder 'filename' und 'layer' dürfen nicht leer (*NULL*) sein dürfen.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+select filename, layer, st_geometryN(st_polygonize(geometry),1)
+  from line_layer_3d
+  where feature_id in (4, 5, 13, 14, 16, 17, 18, 19, 784, 785, 891, 892, 893, 894, 895, 896);
+select filename, layer, st_geometryN(st_polygonize(geometry),2)
+  from line_layer_3d
+  where feature_id in (4, 5, 13, 14, 16, 17, 18, 19, 784, 785, 891, 892, 
+  893, 894, 895, 896);
+select filename, layer, st_geometryN(st_polygonize(geometry),3)
+  from line_layer_3d
+  where feature_id in (4, 5, 13, 14, 16, 17, 18, 19, 784, 785, 891, 892, 
+  893, 894, 895, 896);
+Delete from line_layer_3d
+  where feature_id in (4, 5, 13, 14, 16, 17, 18, 19, 784, 785, 891, 892, 
+  893, 894, 895, 896);  
+Commit;
+```
+
+Es verbleiben wenige Linien die nach eingehender Prüfung keinen Sinn ergeben und gelöscht werden. Zudem werden die Befunde hier nicht nach den Teillinien getrennt, dies muss bei Bedarf in Handarbeit erfolgen.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Delete from line_layer_3d
+  where feature_id in (825, 824, 699, 822)
+```
+
+#### Tabelle point_layer_3d \newline
+
+Ergänzen wir die Spalten 'number' als auch 'info' und schaffen wir uns nochmals einen Überblick über die Layer und die jeweilige Anzahl an Punkten als Text für das Protokoll.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+ALTER TABLE "point_layer_3d" ADD COLUMN number integer;
+ALTER TABLE "point_layer_3d" ADD COLUMN info text;
+
+select group_concat(l, ', ') 
+from (select layer || ': ' || count(*) as l, 'g' as g 
+  from point_layer_3d group by layer) 
+group by g;
+Commit;
+```
+
+Höhenpunkte Befunde: 274, Keramik Pl.1: 73, Knochenreste: 2, Photogrammetriepunkte: 15, Pl1-Keramik: 6, Pl2-Keramik: 2, Pl2-Knochen: 2, Profilzeichennägel: 5. Die Begriffe sollten einheitlicher und gestaltet werden. 
+
+Der neue Layername  soll analog den Profilen und Befunden als Präfix das Planum erhalten, nachfolgend die Bezeichnung 'Funde' oder 'Messpunkt'. In die Spalte 'info' kommt die Objektbeschreibung und in der Spalte 'number' wird später die Befundnummer durch eine räumliche Verbindung eingetragen. 
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+Update point_layer_3d
+  set info = 'Keramik' where layer like '%Keramik%';
+Update point_layer_3d
+  set info = 'Knochen' where layer like '%Knochen%';
+Update point_layer_3d
+  set info = 'Photogrammetrie' where layer like '%Photogrammetrie%';
+Update point_layer_3d
+  set info = 'Profilnagel' where layer like '%Profil%';
+Update point_layer_3d
+  set info = 'Niv-Punkt' where layer like '%Höhen%';
+Update point_layer_3d
+  set layer = 'Pl02_Funde' where layer like '%Pl2-%';
+Update point_layer_3d
+  set layer = 'Pl01_Funde' where layer like '%Pl1-%' or layer like '%Pl.1';
+Update point_layer_3d
+  set layer = 'PL___Funde' where layer like '%Knochen%';
+Update point_layer_3d
+  set layer = 'PL___Messpunkt' where substr(layer,1,2) <> 'Pl';
+Commit;
+```
+
+#### Tabelle polyg_layer_3d \newline
+
+Ergänzen wir die Spalten 'number' als auch 'info' und schaffen wir uns nochmals einen Überblick über die Layer und die jeweilige Anzahl an Objekten als Text für das Protokoll.
+
+```{sql, eval=FALSE, connection=juffdb, include=TRUE}
+Begin transaction;
+ALTER TABLE "polyg_layer_3d" ADD COLUMN number integer;
+ALTER TABLE "polyg_layer_3d" ADD COLUMN info text;
+
+select group_concat(l, ', ') 
+from (select layer || ': ' || count(*) as l, 'g' as g 
+  from polyg_layer_3d group by layer) 
+group by g;
+Commit;
+```
+
+00Befund: 250, Befunde: 277, Flächengrenzen: 3, GGok: 1, GGuk: 2, GUK: 2, Grabungsgrenze: 1, Keramik Pl.1: 1, Pl2-Befunde: 6, Profile: 1
+
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
 
-Commt;
+Commit;
 ```
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
 
-Commt;
+Commit;
 ```
 
 ```{sql, eval=FALSE, connection=juffdb, include=TRUE}
 Begin transaction;
 
-Commt;
-```
-
-```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-Begin transaction;
-
-Commt;
-```
-
-```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-Begin transaction;
-
-Commt;
-```
-
-```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-Begin transaction;
-
-Commt;
-```
-
-```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-Begin transaction;
-
-Commt;
-```
-
-```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-Begin transaction;
-
-Commt;
-```
-
-```{sql, eval=FALSE, connection=juffdb, include=TRUE}
-Begin transaction;
-
-Commt;
+Commit;
 ```
 
 
